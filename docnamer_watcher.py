@@ -22,9 +22,15 @@ from datetime import datetime
 if len(sys.argv) > 1:
     ORDNER = os.path.abspath(sys.argv[1])
 else:
+    # Watchdog meldet Pfade über den Documents-Symlink – wir verwenden denselben
     ORDNER = os.path.expanduser(
-        "~/Library/Mobile Documents/iCloud~com~readdle~Scanner~PDF"
+        "~/Library/Mobile Documents/iCloud~com~readdle~Scanner~PDF/Documents"
     )
+    # Fallback falls der Symlink nicht existiert
+    if not os.path.exists(ORDNER):
+        ORDNER = os.path.expanduser(
+            "~/Library/Mobile Documents/iCloud~com~readdle~Scanner~PDF"
+        )
 
 AUSGABE_BASIS   = os.path.expanduser("~/Documents/DocNamer")
 ZIELORDNER      = os.path.join(AUSGABE_BASIS, "_Sortiert")
@@ -272,6 +278,8 @@ def leere_ordner_archivieren():
             continue
         if name.startswith(".") or name.startswith("_"):
             continue
+        if name == "Documents":
+            continue
         # Prüfen ob noch PDFs vorhanden
         pdfs_vorhanden = any(
             f.lower().endswith(".pdf")
@@ -294,8 +302,6 @@ def leere_ordner_archivieren():
 def verarbeite_pdf(pfad):
     """Analysiert eine PDF und verschiebt sie in den Ziel- oder Fehlerordner."""
 
-    # Pfad normalisieren
-    pfad = os.path.realpath(pfad)
     datei = os.path.basename(pfad)
 
     if not os.path.exists(pfad):
