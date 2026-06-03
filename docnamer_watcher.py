@@ -333,8 +333,25 @@ class PDFHandler(FileSystemEventHandler):
 # Einstiegspunkt
 # ---------------------------------------------------------------------------
 
+def fehler_zurueckholen():
+    """Verschiebt PDFs aus _Fehler zurück in den Scan-Ordner zum erneuten Versuch."""
+    if not os.path.exists(FEHLERORDNER):
+        return
+    zurueck = 0
+    for datei in os.listdir(FEHLERORDNER):
+        if datei.lower().endswith(".pdf"):
+            quelle  = os.path.join(FEHLERORDNER, datei)
+            ziel    = eindeutiger_pfad(ORDNER, datei)
+            shutil.move(quelle, ziel)
+            log.info(f"  → Zurück in Scan-Ordner: {datei}")
+            zurueck += 1
+    if zurueck > 0:
+        log.info(f"Retry: {zurueck} PDF(s) zurück in Scan-Ordner verschoben.")
+
+
 def startup_scan():
     """Verarbeitet alle PDFs die beim Start bereits im Ordner liegen."""
+    fehler_zurueckholen()
     log.info("Startup-Scan: suche vorhandene PDFs...")
     gefunden = 0
     for root, dirs, files in os.walk(ORDNER):
@@ -351,6 +368,7 @@ def startup_scan():
 
 
 if __name__ == "__main__":
+    os.makedirs(AUSGABE_BASIS, exist_ok=True)
     os.makedirs(ZIELORDNER, exist_ok=True)
     os.makedirs(FEHLERORDNER, exist_ok=True)
 
