@@ -22,7 +22,7 @@ if len(sys.argv) > 1:
     ORDNER = os.path.abspath(sys.argv[1])
 else:
     ORDNER = os.path.expanduser(
-        "~/Library/Mobile Documents/com~apple~CloudDocs/Scanner By Readdle"
+        "~/Library/Mobile Documents/iCloud~com~readdle~Scanner~PDF"
     )
 
 ZIELORDNER   = os.path.join(ORDNER, "_Sortiert")
