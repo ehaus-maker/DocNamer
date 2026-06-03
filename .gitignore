@@ -1,0 +1,5 @@
+.DS_Store
+_Sortiert/
+_Duplikate/
+*.db
+*.csv
