@@ -25,10 +25,11 @@ else:
         "~/Library/Mobile Documents/iCloud~com~readdle~Scanner~PDF"
     )
 
-ZIELORDNER   = os.path.join(ORDNER, "_Sortiert")
-FEHLERORDNER = os.path.join(ORDNER, "_Fehler")
-LOG_DATEI    = os.path.join(os.path.dirname(__file__), "docnamer.log")
-CSV_DATEI    = os.path.join(ZIELORDNER, "umbenennung.csv")
+AUSGABE_BASIS = os.path.expanduser("~/Documents/DocNamer")
+ZIELORDNER   = os.path.join(AUSGABE_BASIS, "_Sortiert")
+FEHLERORDNER = os.path.join(AUSGABE_BASIS, "_Fehler")
+LOG_DATEI    = os.path.join(AUSGABE_BASIS, "docnamer.log")
+CSV_DATEI    = os.path.join(AUSGABE_BASIS, "umbenennung.csv")
 
 KATEGORIEN_JSON = os.path.join(os.path.dirname(__file__), "kategorien.json")
 
