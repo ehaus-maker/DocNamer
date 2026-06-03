@@ -19,8 +19,12 @@ from datetime import datetime
 # Konfiguration
 # ---------------------------------------------------------------------------
 
-if len(sys.argv) > 1:
-    ORDNER = os.path.abspath(sys.argv[1])
+# --einmal Flag auswerten
+EINMAL_MODUS = "--einmal" in sys.argv
+args = [a for a in sys.argv[1:] if not a.startswith("--")]
+
+if args:
+    ORDNER = os.path.abspath(args[0])
 else:
     # Watchdog meldet Pfade über den Documents-Symlink – wir verwenden denselben
     ORDNER = os.path.expanduser(
@@ -467,26 +471,33 @@ def startup_scan():
 
 if __name__ == "__main__":
     log.info("=" * 60)
-    log.info(f"docnamer Watcher gestartet")
+    modus = "Einmal-Scan" if EINMAL_MODUS else "Watcher"
+    log.info(f"docnamer gestartet  [{modus}]")
     log.info(f"Überwachter Ordner : {ORDNER}")
     log.info(f"Zielordner         : {ZIELORDNER}")
     log.info(f"Fehlerordner       : {FEHLERORDNER}")
     log.info(f"Log                : {LOG_DATEI}")
     log.info("=" * 60)
 
-    startup_scan()
+    if EINMAL_MODUS:
+        # Einmal-Scan: durchlaufen und beenden
+        startup_scan()
+        log.info("Einmal-Scan abgeschlossen.")
+    else:
+        # Watcher: dauerhaft laufen
+        startup_scan()
 
-    handler  = PDFHandler()
-    observer = Observer()
-    observer.schedule(handler, ORDNER, recursive=True)
-    observer.start()
+        handler  = PDFHandler()
+        observer = Observer()
+        observer.schedule(handler, ORDNER, recursive=True)
+        observer.start()
 
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        log.info("Watcher wird beendet...")
-        observer.stop()
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            log.info("Watcher wird beendet...")
+            observer.stop()
 
-    observer.join()
-    log.info("Watcher beendet.")
+        observer.join()
+        log.info("Watcher beendet.")
