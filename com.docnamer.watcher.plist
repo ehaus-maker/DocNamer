@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+
+    <!-- Eindeutiger Name des Dienstes -->
+    <key>Label</key>
+    <string>com.docnamer.watcher</string>
+
+    <!-- Skript und Scan-Ordner — BITTE ANPASSEN -->
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/python3</string>
+        <string>/Users/DEIN_BENUTZERNAME/docnamer/docnamer_watcher.py</string>
+        <string>/Users/DEIN_BENUTZERNAME/Scans</string>
+    </array>
+
+    <!-- Anthropic API Key als Umgebungsvariable -->
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>ANTHROPIC_API_KEY</key>
+        <string>sk-ant-DEIN_KEY_HIER</string>
+    </dict>
+
+    <!-- Automatisch starten beim Login -->
+    <key>RunAtLoad</key>
+    <true/>
+
+    <!-- Bei Absturz automatisch neu starten -->
+    <key>KeepAlive</key>
+    <true/>
+
+    <!-- Log-Ausgaben -->
+    <key>StandardOutPath</key>
+    <string>/Users/DEIN_BENUTZERNAME/docnamer/launchagent_out.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/DEIN_BENUTZERNAME/docnamer/launchagent_err.log</string>
+
+</dict>
+</plist>
