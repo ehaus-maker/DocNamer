@@ -346,7 +346,7 @@ if __name__ == "__main__":
 
     handler  = PDFHandler()
     observer = Observer()
-    observer.schedule(handler, ORDNER, recursive=False)
+    observer.schedule(handler, ORDNER, recursive=True)
     observer.start()
 
     try:
