@@ -1,0 +1,75 @@
+2026-06-03 14:51:01  INFO      ============================================================
+2026-06-03 14:51:01  INFO      docnamer Watcher gestartet
+2026-06-03 14:51:01  INFO      Überwachter Ordner : /Users/ehaus/Library/Mobile Documents/com~apple~CloudDocs/Scanner By Readdle
+2026-06-03 14:51:01  INFO      Zielordner         : /Users/ehaus/Library/Mobile Documents/com~apple~CloudDocs/Scanner By Readdle/_Sortiert
+2026-06-03 14:51:01  INFO      Fehlerordner       : /Users/ehaus/Library/Mobile Documents/com~apple~CloudDocs/Scanner By Readdle/_Fehler
+2026-06-03 14:51:01  INFO      Log                : /Users/ehaus/Documents/GitHub/DocNamer/docnamer.log
+2026-06-03 14:51:01  INFO      ============================================================
+2026-06-03 14:51:45  INFO      Watcher wird beendet...
+2026-06-03 14:51:45  INFO      Watcher beendet.
+2026-06-03 14:53:48  INFO      ============================================================
+2026-06-03 14:53:48  INFO      docnamer Watcher gestartet
+2026-06-03 14:53:48  INFO      Überwachter Ordner : /Users/ehaus/Library/Mobile Documents/com~apple~CloudDocs/Scanner By Readdle
+2026-06-03 14:53:48  INFO      Zielordner         : /Users/ehaus/Library/Mobile Documents/com~apple~CloudDocs/Scanner By Readdle/_Sortiert
+2026-06-03 14:53:48  INFO      Fehlerordner       : /Users/ehaus/Library/Mobile Documents/com~apple~CloudDocs/Scanner By Readdle/_Fehler
+2026-06-03 14:53:48  INFO      Log                : /Users/ehaus/Documents/GitHub/DocNamer/docnamer.log
+2026-06-03 14:53:48  INFO      ============================================================
+2026-06-03 14:55:26  INFO      Watcher wird beendet...
+2026-06-03 14:55:26  INFO      Watcher beendet.
+2026-06-03 14:56:57  INFO      ============================================================
+2026-06-03 14:56:57  INFO      docnamer Watcher gestartet
+2026-06-03 14:56:57  INFO      Überwachter Ordner : /Users/ehaus/Library/Mobile Documents/com~apple~CloudDocs/Scanner By Readdle
+2026-06-03 14:56:57  INFO      Zielordner         : /Users/ehaus/Library/Mobile Documents/com~apple~CloudDocs/Scanner By Readdle/_Sortiert
+2026-06-03 14:56:57  INFO      Fehlerordner       : /Users/ehaus/Library/Mobile Documents/com~apple~CloudDocs/Scanner By Readdle/_Fehler
+2026-06-03 14:56:57  INFO      Log                : /Users/ehaus/Documents/GitHub/DocNamer/docnamer.log
+2026-06-03 14:56:57  INFO      ============================================================
+2026-06-03 15:12:38  INFO      ============================================================
+2026-06-03 15:12:38  INFO      docnamer Watcher gestartet
+2026-06-03 15:12:38  INFO      Überwachter Ordner : /Users/ehaus/Library/Mobile Documents/com~apple~CloudDocs/Scanner By Readdle
+2026-06-03 15:12:38  INFO      Zielordner         : /Users/ehaus/Library/Mobile Documents/com~apple~CloudDocs/Scanner By Readdle/_Sortiert
+2026-06-03 15:12:38  INFO      Fehlerordner       : /Users/ehaus/Library/Mobile Documents/com~apple~CloudDocs/Scanner By Readdle/_Fehler
+2026-06-03 15:12:38  INFO      Log                : /Users/ehaus/Documents/GitHub/DocNamer/docnamer.log
+2026-06-03 15:12:38  INFO      ============================================================
+2026-06-03 15:33:51  INFO      ============================================================
+2026-06-03 15:33:51  INFO      docnamer Watcher gestartet
+2026-06-03 15:33:51  INFO      Überwachter Ordner : /Users/ehaus/Library/Mobile Documents/iCloud~com~readdle~Scanner~PDF
+2026-06-03 15:33:51  INFO      Zielordner         : /Users/ehaus/Library/Mobile Documents/iCloud~com~readdle~Scanner~PDF/_Sortiert
+2026-06-03 15:33:51  INFO      Fehlerordner       : /Users/ehaus/Library/Mobile Documents/iCloud~com~readdle~Scanner~PDF/_Fehler
+2026-06-03 15:33:51  INFO      Log                : /Users/ehaus/Documents/GitHub/DocNamer/docnamer.log
+2026-06-03 15:33:51  INFO      ============================================================
+2026-06-03 15:37:24  INFO      ============================================================
+2026-06-03 15:37:24  INFO      docnamer Watcher gestartet
+2026-06-03 15:37:24  INFO      Überwachter Ordner : /Users/ehaus/Library/Mobile Documents/iCloud~com~readdle~Scanner~PDF
+2026-06-03 15:37:24  INFO      Zielordner         : /Users/ehaus/Library/Mobile Documents/iCloud~com~readdle~Scanner~PDF/_Sortiert
+2026-06-03 15:37:24  INFO      Fehlerordner       : /Users/ehaus/Library/Mobile Documents/iCloud~com~readdle~Scanner~PDF/_Fehler
+2026-06-03 15:37:24  INFO      Log                : /Users/ehaus/Documents/GitHub/DocNamer/docnamer.log
+2026-06-03 15:37:24  INFO      ============================================================
+2026-06-03 15:37:24  INFO      Startup-Scan: suche vorhandene PDFs...
+2026-06-03 15:37:24  INFO      Neue Datei erkannt: 62f0fbd8.pdf
+2026-06-03 15:37:27  INFO        → Textanalyse (Haiku)
+2026-06-03 15:37:27  ERROR       ✗ Fehler bei 62f0fbd8.pdf: "Could not resolve authentication method. Expected one of api_key, auth_token, or credentials to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted"
+2026-06-03 15:37:27  ERROR       ✗ Verschoben nach _Fehler: /Users/ehaus/Library/Mobile Documents/iCloud~com~readdle~Scanner~PDF/_Fehler/62f0fbd8.pdf
+2026-06-03 15:37:27  INFO      Startup-Scan: 1 PDF(s) verarbeitet.
+2026-06-03 15:43:12  INFO      Watcher wird beendet...
+2026-06-03 15:43:12  INFO      Watcher beendet.
+2026-06-03 15:47:16  INFO      ============================================================
+2026-06-03 15:47:16  INFO      docnamer Watcher gestartet
+2026-06-03 15:47:16  INFO      Überwachter Ordner : /Users/ehaus/Library/Mobile Documents/iCloud~com~readdle~Scanner~PDF
+2026-06-03 15:47:16  INFO      Zielordner         : /Users/ehaus/Library/Mobile Documents/iCloud~com~readdle~Scanner~PDF/_Sortiert
+2026-06-03 15:47:16  INFO      Fehlerordner       : /Users/ehaus/Library/Mobile Documents/iCloud~com~readdle~Scanner~PDF/_Fehler
+2026-06-03 15:47:16  INFO      Log                : /Users/ehaus/Documents/GitHub/DocNamer/docnamer.log
+2026-06-03 15:47:16  INFO      ============================================================
+2026-06-03 15:47:16  INFO      Startup-Scan: suche vorhandene PDFs...
+2026-06-03 15:47:16  INFO      Startup-Scan: keine PDFs gefunden.
+2026-06-03 15:48:00  INFO      Neue Datei erkannt: fa2bbcad.pdf
+2026-06-03 15:48:04  INFO        → Textanalyse (Haiku)
+2026-06-03 15:48:04  INFO      HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 400 Bad Request"
+2026-06-03 15:48:04  ERROR       ✗ Fehler bei fa2bbcad.pdf: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CbgRxgSnQMPwwVmFUABcM'}
+2026-06-03 15:48:04  ERROR       ✗ Verschoben nach _Fehler: /Users/ehaus/Library/Mobile Documents/iCloud~com~readdle~Scanner~PDF/_Fehler/fa2bbcad.pdf
+2026-06-03 15:49:14  INFO      Neue Datei erkannt: 00820db2.pdf
+2026-06-03 15:49:17  INFO        → Textanalyse (Haiku)
+2026-06-03 15:49:18  INFO      HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 400 Bad Request"
+2026-06-03 15:49:18  ERROR       ✗ Fehler bei 00820db2.pdf: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CbgS47eV7nHVYBPNs7921'}
+2026-06-03 15:49:18  ERROR       ✗ Verschoben nach _Fehler: /Users/ehaus/Library/Mobile Documents/iCloud~com~readdle~Scanner~PDF/_Fehler/00820db2.pdf
+2026-06-03 15:52:52  INFO      Watcher wird beendet...
+2026-06-03 15:52:52  INFO      Watcher beendet.

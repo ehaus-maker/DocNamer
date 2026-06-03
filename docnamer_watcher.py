@@ -7,6 +7,7 @@ import base64
 import time
 import logging
 import subprocess
+import hashlib
 import fitz
 import anthropic
 
@@ -25,17 +26,25 @@ else:
         "~/Library/Mobile Documents/iCloud~com~readdle~Scanner~PDF"
     )
 
-AUSGABE_BASIS = os.path.expanduser("~/Documents/DocNamer")
-ZIELORDNER   = os.path.join(AUSGABE_BASIS, "_Sortiert")
-FEHLERORDNER = os.path.join(AUSGABE_BASIS, "_Fehler")
-LOG_DATEI    = os.path.join(AUSGABE_BASIS, "docnamer.log")
-CSV_DATEI    = os.path.join(AUSGABE_BASIS, "umbenennung.csv")
+AUSGABE_BASIS   = os.path.expanduser("~/Documents/DocNamer")
+ZIELORDNER      = os.path.join(AUSGABE_BASIS, "_Sortiert")
+FEHLERORDNER    = os.path.join(AUSGABE_BASIS, "_Fehler")
+DUPLIKAT_ORDNER = os.path.join(AUSGABE_BASIS, "_Duplikate")
+ERLEDIGT_BASIS  = os.path.join(AUSGABE_BASIS, "_Erledigt")
+LOG_DATEI       = os.path.join(AUSGABE_BASIS, "docnamer.log")
+CSV_DATEI       = os.path.join(AUSGABE_BASIS, "umbenennung.csv")
+HASH_DATEI      = os.path.join(AUSGABE_BASIS, "hashes.json")
 
-KATEGORIEN_JSON = os.path.join(os.path.dirname(__file__), "kategorien.json")
-
-# Wartezeit: PDF muss X Sekunden stabil sein bevor Analyse startet
-# (verhindert Verarbeitung halb-geschriebener Dateien)
+KATEGORIEN_JSON      = os.path.join(os.path.dirname(__file__), "kategorien.json")
 STABILISIERUNGS_SECS = 3
+ICLOUD_TIMEOUT       = 60
+
+# ---------------------------------------------------------------------------
+# Ausgabe-Ordner anlegen (vor dem Logging!)
+# ---------------------------------------------------------------------------
+
+for d in (AUSGABE_BASIS, ZIELORDNER, FEHLERORDNER, DUPLIKAT_ORDNER, ERLEDIGT_BASIS):
+    os.makedirs(d, exist_ok=True)
 
 # ---------------------------------------------------------------------------
 # Logging
@@ -180,6 +189,10 @@ Antworte NUR mit JSON, kein erklärender Text:
     return validiere_ergebnis(parse_antwort(r.content[0].text))
 
 
+# ---------------------------------------------------------------------------
+# Hilfsfunktionen
+# ---------------------------------------------------------------------------
+
 def eindeutiger_pfad(ordner, dateiname):
     basis, endung = os.path.splitext(dateiname)
     ziel = os.path.join(ordner, dateiname)
@@ -191,7 +204,6 @@ def eindeutiger_pfad(ordner, dateiname):
 
 
 def csv_zeile_schreiben(alt, neu, kategorie):
-    os.makedirs(ZIELORDNER, exist_ok=True)
     neu_datei = not os.path.exists(CSV_DATEI)
     with open(CSV_DATEI, "a", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
@@ -199,63 +211,135 @@ def csv_zeile_schreiben(alt, neu, kategorie):
             writer.writerow(["Zeitstempel", "Alter Pfad", "Neuer Pfad", "Kategorie"])
         writer.writerow([datetime.now().strftime("%Y-%m-%d %H:%M:%S"), alt, neu, kategorie])
 
-# ---------------------------------------------------------------------------
-# Dokument verarbeiten
-# ---------------------------------------------------------------------------
 
-ICLOUD_DOWNLOAD_TIMEOUT = 60  # Sekunden
+def hash_laden():
+    if not os.path.exists(HASH_DATEI):
+        return {}
+    with open(HASH_DATEI, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def hash_speichern(hashes):
+    with open(HASH_DATEI, "w", encoding="utf-8") as f:
+        json.dump(hashes, f, ensure_ascii=False, indent=2)
+
+
+def pdf_hash(pfad):
+    h = hashlib.sha256()
+    with open(pfad, "rb") as f:
+        for chunk in iter(lambda: f.read(8192), b""):
+            h.update(chunk)
+    return h.hexdigest()
 
 
 def icloud_download_erzwingen(pfad):
-    """Falls die Datei nur ein iCloud-Platzhalter ist, Download erzwingen und warten."""
     verzeichnis = os.path.dirname(pfad)
     dateiname   = os.path.basename(pfad)
     platzhalter = os.path.join(verzeichnis, "." + dateiname + ".icloud")
-
     if not os.path.exists(platzhalter):
-        return  # Datei ist bereits lokal verfügbar
-
+        return
     log.info(f"  → iCloud-Platzhalter erkannt, erzwinge Download...")
     try:
         subprocess.run(["brctl", "download", pfad], check=True)
     except subprocess.CalledProcessError as e:
         raise RuntimeError(f"brctl download fehlgeschlagen: {e}")
-
-    for _ in range(ICLOUD_DOWNLOAD_TIMEOUT):
+    for _ in range(ICLOUD_TIMEOUT):
         if os.path.exists(pfad) and not os.path.exists(platzhalter):
             log.info(f"  → iCloud-Download abgeschlossen.")
             return
         time.sleep(1)
+    raise TimeoutError(f"iCloud-Download Timeout: {dateiname}")
 
-    raise TimeoutError(f"iCloud-Download Timeout nach {ICLOUD_DOWNLOAD_TIMEOUT}s: {dateiname}")
 
+def quellordner_name(pfad):
+    """Gibt den Namen des direkten Elternordners zurück, falls er nicht der Scan-Ordner selbst ist."""
+    ordner_real = os.path.realpath(ORDNER)
+    eltern_real = os.path.realpath(os.path.dirname(pfad))
+    if eltern_real != ordner_real:
+        return os.path.basename(eltern_real)
+    return ""
+
+
+def leere_ordner_archivieren():
+    """Verschiebt leere Quellordner im Scanner-Ordner nach _Erledigt."""
+    erledigt = 0
+    for name in os.listdir(ORDNER):
+        pfad = os.path.join(ORDNER, name)
+        # Nur echte, nicht-versteckte, nicht-System-Ordner
+        if not os.path.isdir(pfad):
+            continue
+        if os.path.islink(pfad):
+            continue
+        if name.startswith(".") or name.startswith("_"):
+            continue
+        # Prüfen ob noch PDFs vorhanden
+        pdfs_vorhanden = any(
+            f.lower().endswith(".pdf")
+            for _, _, files in os.walk(pfad)
+            for f in files
+        )
+        if not pdfs_vorhanden:
+            ziel = eindeutiger_pfad(ERLEDIGT_BASIS, name)
+            shutil.move(pfad, ziel)
+            log.info(f"  → Leerer Ordner archiviert: {name} → _Erledigt/")
+            erledigt += 1
+    if erledigt > 0:
+        log.info(f"Aufräumen: {erledigt} Ordner nach _Erledigt verschoben.")
+
+
+# ---------------------------------------------------------------------------
+# PDF verarbeiten
+# ---------------------------------------------------------------------------
 
 def verarbeite_pdf(pfad):
     """Analysiert eine PDF und verschiebt sie in den Ziel- oder Fehlerordner."""
 
+    # Pfad normalisieren
+    pfad = os.path.realpath(pfad)
     datei = os.path.basename(pfad)
+
+    if not os.path.exists(pfad):
+        log.warning(f"Datei nicht gefunden, übersprungen: {datei}")
+        return
+
     log.info(f"Neue Datei erkannt: {datei}")
 
-    # iCloud: Download sicherstellen bevor wir die Größe prüfen
+    # iCloud-Download sicherstellen
     try:
         icloud_download_erzwingen(pfad)
     except Exception as e:
         log.error(f"  ✗ iCloud-Fehler bei {datei}: {e}")
-        # Weiter versuchen – vielleicht ist die Datei trotzdem da
 
-    # Warten bis Datei stabil ist (vollständig geschrieben)
+    # Warten bis Datei stabil ist
     groesse_alt = -1
     while True:
         try:
             groesse_neu = os.path.getsize(pfad)
         except FileNotFoundError:
-            log.warning(f"Datei verschwunden vor Verarbeitung: {datei}")
+            log.warning(f"Datei verschwunden: {datei}")
             return
         if groesse_neu == groesse_alt:
             break
         groesse_alt = groesse_neu
         time.sleep(STABILISIERUNGS_SECS)
 
+    # Duplikatprüfung
+    datei_hash = None
+    hashes = {}
+    try:
+        datei_hash = pdf_hash(pfad)
+        hashes = hash_laden()
+        if datei_hash in hashes:
+            log.info(f"  → Duplikat (verarbeitet am {hashes[datei_hash]}), verschiebe nach _Duplikate.")
+            dup_pfad = eindeutiger_pfad(DUPLIKAT_ORDNER, datei)
+            shutil.move(pfad, dup_pfad)
+            leere_ordner_archivieren()
+            return
+    except Exception as e:
+        log.warning(f"  → Hash-Prüfung fehlgeschlagen: {e}")
+
+    # Analyse & Sortierung
+    qname    = quellordner_name(pfad)
     bildpfade = []
     try:
         text = pdf_text_lesen(pfad)
@@ -271,7 +355,10 @@ def verarbeite_pdf(pfad):
         kategorie = ergebnis["category"]
         filename  = ergebnis["filename"] + ".pdf"
 
-        zielordner = os.path.join(ZIELORDNER, kategorie)
+        if qname:
+            zielordner = os.path.join(ZIELORDNER, qname, kategorie)
+        else:
+            zielordner = os.path.join(ZIELORDNER, kategorie)
         os.makedirs(zielordner, exist_ok=True)
         zielpfad = eindeutiger_pfad(zielordner, filename)
 
@@ -281,9 +368,14 @@ def verarbeite_pdf(pfad):
         log.info(f"  ✓ Kategorie : {kategorie}")
         log.info(f"  ✓ Neu       : {zielpfad}")
 
+        if datei_hash:
+            hashes[datei_hash] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            hash_speichern(hashes)
+
+        leere_ordner_archivieren()
+
     except Exception as e:
         log.error(f"  ✗ Fehler bei {datei}: {e}")
-        os.makedirs(FEHLERORDNER, exist_ok=True)
         fehlerpfad = eindeutiger_pfad(FEHLERORDNER, datei)
         try:
             shutil.move(pfad, fehlerpfad)
@@ -296,82 +388,78 @@ def verarbeite_pdf(pfad):
             if os.path.exists(bild):
                 os.remove(bild)
 
+
 # ---------------------------------------------------------------------------
-# Watchdog Handler
+# Watchdog
 # ---------------------------------------------------------------------------
 
 class PDFHandler(FileSystemEventHandler):
 
-    def on_created(self, event):
-        if event.is_directory:
-            return
-        pfad = event.src_path
-
-        # iCloud-Platzhalter: .dateiname.pdf.icloud → echten Pfad ableiten
+    def _verarbeiten(self, pfad):
+        # iCloud-Platzhalter auflösen
         if os.path.basename(pfad).startswith(".") and pfad.endswith(".icloud"):
             echter_name = os.path.basename(pfad)[1:].removesuffix(".icloud")
             pfad = os.path.join(os.path.dirname(pfad), echter_name)
-
         if not pfad.lower().endswith(".pdf"):
             return
-        if ZIELORDNER in pfad or FEHLERORDNER in pfad:
-            return
+        # Ausgabe-Ordner ignorieren
+        pfad_real = os.path.realpath(pfad)
+        for ignore in (ZIELORDNER, FEHLERORDNER, DUPLIKAT_ORDNER, ERLEDIGT_BASIS):
+            if pfad_real.startswith(os.path.realpath(ignore)):
+                return
         verarbeite_pdf(pfad)
+
+    def on_created(self, event):
+        if not event.is_directory:
+            self._verarbeiten(event.src_path)
 
     def on_moved(self, event):
-        """Reagiert auch auf Dateien die per drag & drop / mv hineinkommen."""
-        if event.is_directory:
-            return
-        pfad = event.dest_path
-        if not pfad.lower().endswith(".pdf"):
-            return
-        if ZIELORDNER in pfad or FEHLERORDNER in pfad:
-            return
-        verarbeite_pdf(pfad)
+        if not event.is_directory:
+            self._verarbeiten(event.dest_path)
+
 
 # ---------------------------------------------------------------------------
-# Einstiegspunkt
+# Startup
 # ---------------------------------------------------------------------------
 
 def fehler_zurueckholen():
-    """Verschiebt PDFs aus _Fehler zurück in den Scan-Ordner zum erneuten Versuch."""
     if not os.path.exists(FEHLERORDNER):
         return
     zurueck = 0
     for datei in os.listdir(FEHLERORDNER):
         if datei.lower().endswith(".pdf"):
-            quelle  = os.path.join(FEHLERORDNER, datei)
-            ziel    = eindeutiger_pfad(ORDNER, datei)
+            quelle = os.path.join(FEHLERORDNER, datei)
+            ziel   = eindeutiger_pfad(ORDNER, datei)
             shutil.move(quelle, ziel)
-            log.info(f"  → Zurück in Scan-Ordner: {datei}")
+            log.info(f"  → Retry: {datei} zurück in Scan-Ordner")
             zurueck += 1
     if zurueck > 0:
-        log.info(f"Retry: {zurueck} PDF(s) zurück in Scan-Ordner verschoben.")
+        log.info(f"Retry: {zurueck} PDF(s) zurück verschoben.")
 
 
 def startup_scan():
-    """Verarbeitet alle PDFs die beim Start bereits im Ordner liegen."""
     fehler_zurueckholen()
     log.info("Startup-Scan: suche vorhandene PDFs...")
     gefunden = 0
+    ordner_real = os.path.realpath(ORDNER)
     for root, dirs, files in os.walk(ORDNER):
-        # _Sortiert und _Fehler überspringen
-        dirs[:] = [d for d in dirs if os.path.join(root, d) not in (ZIELORDNER, FEHLERORDNER)]
+        # Ausgabe-Ordner überspringen
+        dirs[:] = [
+            d for d in dirs
+            if not os.path.realpath(os.path.join(root, d)).startswith(
+                os.path.realpath(AUSGABE_BASIS)
+            )
+            and not os.path.islink(os.path.join(root, d))
+        ]
         for datei in files:
             if datei.lower().endswith(".pdf"):
                 gefunden += 1
                 verarbeite_pdf(os.path.join(root, datei))
-    if gefunden == 0:
-        log.info("Startup-Scan: keine PDFs gefunden.")
-    else:
-        log.info(f"Startup-Scan: {gefunden} PDF(s) verarbeitet.")
+    log.info(f"Startup-Scan: {gefunden} PDF(s) gefunden.")
+    leere_ordner_archivieren()
 
 
 if __name__ == "__main__":
-    os.makedirs(AUSGABE_BASIS, exist_ok=True)
-    os.makedirs(ZIELORDNER, exist_ok=True)
-    os.makedirs(FEHLERORDNER, exist_ok=True)
-
     log.info("=" * 60)
     log.info(f"docnamer Watcher gestartet")
     log.info(f"Überwachter Ordner : {ORDNER}")
