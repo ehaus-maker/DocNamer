@@ -332,6 +332,23 @@ class PDFHandler(FileSystemEventHandler):
 # Einstiegspunkt
 # ---------------------------------------------------------------------------
 
+def startup_scan():
+    """Verarbeitet alle PDFs die beim Start bereits im Ordner liegen."""
+    log.info("Startup-Scan: suche vorhandene PDFs...")
+    gefunden = 0
+    for root, dirs, files in os.walk(ORDNER):
+        # _Sortiert und _Fehler überspringen
+        dirs[:] = [d for d in dirs if os.path.join(root, d) not in (ZIELORDNER, FEHLERORDNER)]
+        for datei in files:
+            if datei.lower().endswith(".pdf"):
+                gefunden += 1
+                verarbeite_pdf(os.path.join(root, datei))
+    if gefunden == 0:
+        log.info("Startup-Scan: keine PDFs gefunden.")
+    else:
+        log.info(f"Startup-Scan: {gefunden} PDF(s) verarbeitet.")
+
+
 if __name__ == "__main__":
     os.makedirs(ZIELORDNER, exist_ok=True)
     os.makedirs(FEHLERORDNER, exist_ok=True)
@@ -343,6 +360,8 @@ if __name__ == "__main__":
     log.info(f"Fehlerordner       : {FEHLERORDNER}")
     log.info(f"Log                : {LOG_DATEI}")
     log.info("=" * 60)
+
+    startup_scan()
 
     handler  = PDFHandler()
     observer = Observer()
