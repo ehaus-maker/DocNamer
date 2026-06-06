@@ -28,7 +28,7 @@ ${ANZEIGE_ORDNER}
 
 Wie möchtest du DocNamer starten?" ¬
     with title "DocNamer" ¬
-    buttons {"Ordner wählen …", "Watcher", "Einmal-Scan"} ¬
+    buttons {"Ordner wählen …", "Korrektur", "Einmal-Scan"} ¬
     default button "Einmal-Scan")
 return dialogResult
 EOF
@@ -42,6 +42,16 @@ fi
 # ---------------------------------------------------------------------------
 # Ordner wählen
 # ---------------------------------------------------------------------------
+if [ "$AUSWAHL" = "Korrektur" ]; then
+    "$PYTHON" "$SCRIPT_DIR/docnamer_korrektur.py"
+    exit 0
+fi
+
+if [ "$AUSWAHL" = "Korrektur" ]; then
+    "$PYTHON" "$SCRIPT_DIR/docnamer_korrektur.py"
+    exit 0
+fi
+
 if [ "$AUSWAHL" = "Ordner wählen …" ]; then
     GEWAEHLTER_ORDNER=$(osascript <<EOF
 set chosenFolder to choose folder with prompt "Ordner für DocNamer auswählen:"
