@@ -8,6 +8,7 @@ AUSGABE_BASIS    = os.path.expanduser("~/Documents/DocNamer")
 LOG_DATEI        = os.path.join(AUSGABE_BASIS, "docnamer.log")
 KORREKTUREN_JSON = os.path.join(SCRIPT_DIR, "korrekturen.json")
 KATEGORIEN_JSON  = os.path.join(SCRIPT_DIR, "kategorien.json")
+HASH_JSON        = os.path.join(os.path.expanduser("~/Documents/DocNamer"), "hashes.json")
 
 STANDARD_ORDNER = os.path.expanduser("~/Library/Mobile Documents/iCloud~com~readdle~Scanner~PDF/Documents")
 if not os.path.exists(STANDARD_ORDNER):
@@ -31,6 +32,7 @@ class DocNamerApp(rumps.App):
             rumps.MenuItem("Korrektur erfassen", callback=self.korrektur_erfassen),
             rumps.MenuItem("Korrekturen anzeigen", callback=self.korrekturen_anzeigen),
             rumps.MenuItem("Kategorien editieren", callback=self.kategorien_editieren),
+            rumps.MenuItem("Hash editieren", callback=self.hash_editieren),
             rumps.separator,
             rumps.MenuItem("Log anzeigen", callback=self.log_anzeigen),
             rumps.MenuItem("Sortiert oeffnen", callback=self.sortiert_oeffnen),
@@ -82,6 +84,12 @@ class DocNamerApp(rumps.App):
 
     def kategorien_editieren(self, _):
         subprocess.run(["open", "-a", "TextEdit", KATEGORIEN_JSON])
+
+    def hash_editieren(self, _):
+        if not os.path.exists(HASH_JSON):
+            rumps.alert("Hash-Datei", "Noch keine hashes.json vorhanden.")
+            return
+        subprocess.run(["open", "-a", "TextEdit", HASH_JSON])
 
     def log_anzeigen(self, _):
         if os.path.exists(LOG_DATEI):

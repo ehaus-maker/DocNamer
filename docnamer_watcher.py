@@ -340,7 +340,9 @@ def verarbeite_pdf(pfad):
         datei_hash = pdf_hash(pfad)
         hashes = hash_laden()
         if datei_hash in hashes:
-            log.info(f"  → Duplikat (verarbeitet am {hashes[datei_hash]}), verschiebe nach _Duplikate.")
+            eintrag = hashes[datei_hash]
+            datum   = eintrag["datum"] if isinstance(eintrag, dict) else eintrag
+            log.info(f"  → Duplikat (verarbeitet am {datum}), verschiebe nach _Duplikate.")
             dup_pfad = eindeutiger_pfad(DUPLIKAT_ORDNER, datei)
             shutil.move(pfad, dup_pfad)
             leere_ordner_archivieren()
@@ -379,7 +381,10 @@ def verarbeite_pdf(pfad):
         log.info(f"  ✓ Neu       : {zielpfad}")
 
         if datei_hash:
-            hashes[datei_hash] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            hashes[datei_hash] = {
+                "datum":     datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "dateiname": os.path.basename(zielpfad),
+            }
             hash_speichern(hashes)
 
         leere_ordner_archivieren()
