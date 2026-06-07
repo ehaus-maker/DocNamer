@@ -7,6 +7,7 @@ KORREKTUR_SCRIPT = os.path.join(SCRIPT_DIR, "docnamer_korrektur.py")
 AUSGABE_BASIS    = os.path.expanduser("~/Documents/DocNamer")
 LOG_DATEI        = os.path.join(AUSGABE_BASIS, "docnamer.log")
 KORREKTUREN_JSON = os.path.join(SCRIPT_DIR, "korrekturen.json")
+KATEGORIEN_JSON  = os.path.join(SCRIPT_DIR, "kategorien.json")
 
 STANDARD_ORDNER = os.path.expanduser("~/Library/Mobile Documents/iCloud~com~readdle~Scanner~PDF/Documents")
 if not os.path.exists(STANDARD_ORDNER):
@@ -29,6 +30,7 @@ class DocNamerApp(rumps.App):
             rumps.separator,
             rumps.MenuItem("Korrektur erfassen", callback=self.korrektur_erfassen),
             rumps.MenuItem("Korrekturen anzeigen", callback=self.korrekturen_anzeigen),
+            rumps.MenuItem("Kategorien editieren", callback=self.kategorien_editieren),
             rumps.separator,
             rumps.MenuItem("Log anzeigen", callback=self.log_anzeigen),
             rumps.MenuItem("Sortiert oeffnen", callback=self.sortiert_oeffnen),
@@ -77,6 +79,9 @@ class DocNamerApp(rumps.App):
             k = json.load(f)
         text = "\n".join(f"{i+1}. {x['original_filename']} → {x['korrekte_kategorie']}" for i, x in enumerate(k[-10:]))
         rumps.alert(f"Korrekturen ({len(k)})", text)
+
+    def kategorien_editieren(self, _):
+        subprocess.run(["open", "-a", "TextEdit", KATEGORIEN_JSON])
 
     def log_anzeigen(self, _):
         if os.path.exists(LOG_DATEI):
