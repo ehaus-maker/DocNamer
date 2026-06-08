@@ -553,12 +553,79 @@ def neue_kategorie_eintragen(ordner_pfad, still=False):
         log.warning(f"  → kategorien.json konnte nicht aktualisiert werden: {e}")
 
 
+# macOS-Temp-Namen die Finder beim Anlegen eines neuen Ordners vergibt
+_TEMP_ORDNER_NAMEN = {"neuer ordner", "untitled folder", "unbenannter ordner"}
+
+
+def _ist_temp_name(pfad):
+    return os.path.basename(pfad).strip().lower() in _TEMP_ORDNER_NAMEN
+
+
+def kategorie_umbenennen(alter_pfad, neuer_pfad):
+    """Benennt einen Kategorie-Eintrag in kategorien.json um.
+    Wird aufgerufen wenn ein Ordner in _Sortiert/ umbenannt wird."""
+    ziel_real = os.path.realpath(ZIELORDNER)
+
+    def teile_aus_pfad(pfad):
+        try:
+            rel = os.path.relpath(os.path.realpath(pfad), ziel_real)
+        except ValueError:
+            return []
+        teile = [t for t in rel.split(os.sep) if t]
+        if teile and DATE_MUSTER.match(teile[0]):
+            teile = teile[1:]
+        return teile
+
+    alte_teile = teile_aus_pfad(alter_pfad)
+    neue_teile = teile_aus_pfad(neuer_pfad)
+
+    if not alte_teile or not neue_teile:
+        return
+
+    try:
+        with open(KATEGORIEN_JSON, "r", encoding="utf-8") as f:
+            daten = json.load(f)
+
+        # Alten Knoten suchen und entfernen
+        knoten = daten
+        for teil in alte_teile[:-1]:
+            if teil not in knoten:
+                break
+            knoten = knoten[teil]
+        else:
+            alter_name = alte_teile[-1]
+            neuer_name = neue_teile[-1]
+            if alter_name in knoten:
+                wert = knoten.pop(alter_name)
+                knoten[neuer_name] = wert
+                with open(KATEGORIEN_JSON, "w", encoding="utf-8") as f:
+                    json.dump(daten, f, ensure_ascii=False, indent=2)
+                log.info(f"  ✓ Kategorie umbenannt: {alter_name} → {neuer_name}")
+                return
+
+    except Exception as e:
+        log.warning(f"  → kategorien.json umbenennen fehlgeschlagen: {e}")
+
+    # Kein alter Eintrag vorhanden → einfach neu eintragen
+    neue_kategorie_eintragen(neuer_pfad)
+
+
 class SortierOrdnerHandler(FileSystemEventHandler):
-    """Überwacht _Sortiert/ auf neue Ordner → trägt sie in kategorien.json ein."""
+    """Überwacht _Sortiert/ auf neue und umbenannte Ordner → kategorien.json."""
 
     def on_created(self, event):
-        if event.is_directory:
+        if event.is_directory and not _ist_temp_name(event.src_path):
             neue_kategorie_eintragen(event.src_path)
+
+    def on_moved(self, event):
+        if not event.is_directory:
+            return
+        if _ist_temp_name(event.src_path):
+            # "Neuer Ordner" wurde in echten Namen umbenannt → neu eintragen
+            neue_kategorie_eintragen(event.dest_path)
+        else:
+            # Bestehender Ordner wurde umbenannt → Eintrag aktualisieren
+            kategorie_umbenennen(event.src_path, event.dest_path)
 
 
 class PDFHandler(FileSystemEventHandler):
