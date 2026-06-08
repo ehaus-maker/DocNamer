@@ -203,6 +203,19 @@ Antworte NUR mit JSON, kein erklärender Text:
 # Hilfsfunktionen
 # ---------------------------------------------------------------------------
 
+def macos_notification(titel, untertitel, text=""):
+    """Sendet eine macOS-Systembenachrichtigung via osascript."""
+    try:
+        skript = (
+            f'display notification "{text}" '
+            f'with title "{titel}" '
+            f'subtitle "{untertitel}"'
+        )
+        subprocess.run(["osascript", "-e", skript], check=False)
+    except Exception:
+        pass
+
+
 def eindeutiger_pfad(ordner, dateiname):
     basis, endung = os.path.splitext(dateiname)
     ziel = os.path.join(ordner, dateiname)
@@ -392,12 +405,18 @@ def verarbeite_pdf(pfad):
                     treffer_hash = bekannter_hash
                     break
         if treffer_hash:
-            eintrag = hashes[treffer_hash]
-            datum   = eintrag["datum"] if isinstance(eintrag, dict) else eintrag
+            eintrag  = hashes[treffer_hash]
+            datum    = eintrag["datum"]     if isinstance(eintrag, dict) else eintrag
+            original = eintrag["dateiname"] if isinstance(eintrag, dict) else datei
             log.info(f"  → Duplikat (verarbeitet am {datum}), verschiebe nach _Duplikate.")
             dup_pfad = eindeutiger_pfad(DUPLIKAT_ORDNER, datei)
             shutil.move(pfad, dup_pfad)
             leere_ordner_archivieren()
+            macos_notification(
+                "⚠️ DocNamer – Duplikat erkannt",
+                f"{datei}",
+                f"Bereits sortiert als: {original} – bitte _Duplikate prüfen."
+            )
             return
     except Exception as e:
         log.warning(f"  → Hash-Prüfung fehlgeschlagen: {e}")
