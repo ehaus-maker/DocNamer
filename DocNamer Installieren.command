@@ -52,18 +52,31 @@ if [[ -n "$VORHANDENER_KEY" ]]; then
     echo "  → Vorhandener API-Key gefunden, wird beibehalten."
     API_KEY="$VORHANDENER_KEY"
 else
+    # Schritt 1: Erklärung – eigener Account erforderlich
+    osascript -e 'display dialog "DocNamer benötigt einen eigenen Anthropic API-Key.\n\n⚠️  Wichtig: Verwende niemals den Key einer anderen Person – du hättest keine Kontrolle über Kosten und Datenschutz.\n\nSo bekommst du deinen eigenen Key (ca. 2 Minuten):\n\n1. console.anthropic.com im Browser öffnen\n2. Kostenlosen Account anlegen\n3. Guthaben aufladen (z.B. 5 €)\n4. Links im Menü: \"API Keys\" → \"Create Key\"\n5. Key kopieren (beginnt mit sk-ant-...)\n\nDanach auf \"Weiter\" klicken und den Key einfügen." buttons {"Abbrechen", "Weiter"} default button "Weiter" with title "DocNamer – API-Key einrichten"' > /dev/null 2>&1 || {
+        echo "Installation abgebrochen."
+        exit 0
+    }
+
+    # Schritt 2: Sicherheitshinweis
+    osascript -e 'display dialog "🔐  Sicherheitshinweis zum API-Key\n\nDein API-Key ist wie ein Passwort:\n\n• Gib ihn niemals an andere Personen weiter\n• Sende ihn nicht per E-Mail oder Chat\n• Du kannst ihn jederzeit unter console.anthropic.com sperren\n\nDocNamer speichert den Key ausschließlich lokal auf diesem Mac (~/.docnamer_config, nur für dich lesbar). Er wird nie ins Netzwerk übertragen, außer direkt an die Anthropic API." buttons {"Verstanden – Weiter"} default button "Verstanden – Weiter" with title "DocNamer – Sicherheitshinweis"' > /dev/null 2>&1 || {
+        echo "Installation abgebrochen."
+        exit 0
+    }
+
+    # Schritt 3: Key per Copy/Paste einfügen
     API_KEY=$(osascript \
-        -e 'set r to text returned of (display dialog "Bitte deinen Anthropic API-Key eingeben.\n\nDen Key findest du unter:\nconsole.anthropic.com → API Keys\n\nDer Key beginnt mit sk-ant-..." default answer "" with title "DocNamer Installer" with hidden answer)' \
+        -e 'set r to text returned of (display dialog "API-Key hier einfügen (⌘V):\n\nDer Key beginnt mit sk-ant- und ist ca. 100 Zeichen lang.\nDie Eingabe wird aus Sicherheitsgründen nicht angezeigt." default answer "" with title "DocNamer – API-Key einfügen" with hidden answer)' \
         -e 'return r' 2>/dev/null || true)
 
     if [[ -z "$API_KEY" || "$API_KEY" != sk-ant-* ]]; then
-        dialog "Kein gültiger API-Key eingegeben (muss mit sk-ant- beginnen).\nInstallation abgebrochen."
+        dialog "Kein gültiger API-Key erkannt.\n\nDer Key muss mit sk-ant- beginnen.\nBitte Installation erneut starten und Key aus console.anthropic.com kopieren."
         exit 1
     fi
 
     echo "ANTHROPIC_API_KEY=\"$API_KEY\"" > "$CONFIG_DATEI"
     chmod 600 "$CONFIG_DATEI"
-    echo "  → API-Key gespeichert in $CONFIG_DATEI"
+    echo "  → API-Key sicher gespeichert in $CONFIG_DATEI (Zugriffsrechte: nur du)"
 fi
 
 # =============================================================================
