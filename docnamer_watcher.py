@@ -489,6 +489,77 @@ def verarbeite_pdf(pfad):
 # Watchdog
 # ---------------------------------------------------------------------------
 
+DATE_MUSTER = __import__("re").compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+def neue_kategorie_eintragen(ordner_pfad):
+    """Trägt einen neu im Finder angelegten Ordner als Kategorie in kategorien.json ein.
+
+    Pfad-Logik:
+      _Sortiert/Neue Kat/                → Top-Level-Eintrag  "Neue Kat"
+      _Sortiert/Ober/Neue Kat/           → Unterknoten von    "Ober"
+      _Sortiert/2026-06-08/Neue Kat/     → Scanner-Subfolder wird übersprungen
+    """
+    ziel_real = os.path.realpath(ZIELORDNER)
+    pfad_real = os.path.realpath(ordner_pfad)
+    try:
+        rel = os.path.relpath(pfad_real, ziel_real)
+    except ValueError:
+        return
+
+    teile = [t for t in rel.split(os.sep) if t]
+    if not teile:
+        return
+
+    # Erstes Element überspringen wenn es ein Datum-Subfolder ist (Scanner Pro)
+    if DATE_MUSTER.match(teile[0]):
+        teile = teile[1:]
+    if not teile:
+        return
+
+    # kategorien.json laden, Eintrag hinzufügen
+    try:
+        with open(KATEGORIEN_JSON, "r", encoding="utf-8") as f:
+            daten = json.load(f)
+
+        knoten = daten
+        for teil in teile[:-1]:
+            if teil not in knoten or not isinstance(knoten[teil], dict):
+                log.warning(f"  → Elternknoten '{teil}' nicht in kategorien.json – Kategorie nicht eingetragen.")
+                return
+            knoten = knoten[teil]
+
+        name = teile[-1]
+        if name in knoten:
+            return  # bereits vorhanden
+
+        knoten[name] = {
+            "beschreibung": f"Im Finder angelegt am {datetime.now().strftime('%Y-%m-%d')} – bitte Beschreibung ergänzen"
+        }
+
+        with open(KATEGORIEN_JSON, "w", encoding="utf-8") as f:
+            json.dump(daten, f, ensure_ascii=False, indent=2)
+
+        kategorie_pfad = "/".join(teile)
+        log.info(f"  ✓ Neue Kategorie in kategorien.json eingetragen: {kategorie_pfad}")
+        macos_notification(
+            "📁 DocNamer – Neue Kategorie erkannt",
+            kategorie_pfad,
+            "Kategorie wurde automatisch eingetragen. Beschreibung optional ergänzen."
+        )
+
+    except Exception as e:
+        log.warning(f"  → kategorien.json konnte nicht aktualisiert werden: {e}")
+
+
+class SortierOrdnerHandler(FileSystemEventHandler):
+    """Überwacht _Sortiert/ auf neue Ordner → trägt sie in kategorien.json ein."""
+
+    def on_created(self, event):
+        if event.is_directory:
+            neue_kategorie_eintragen(event.src_path)
+
+
 class PDFHandler(FileSystemEventHandler):
 
     def _verarbeiten(self, pfad):
@@ -576,7 +647,13 @@ if __name__ == "__main__":
         handler  = PDFHandler()
         observer = Observer()
         observer.schedule(handler, ORDNER, recursive=True)
+
+        # Zweiter Observer: _Sortiert/ auf neue Ordner überwachen
+        sortier_handler = SortierOrdnerHandler()
+        observer.schedule(sortier_handler, ZIELORDNER, recursive=True)
+
         observer.start()
+        log.info(f"Kategorie-Erkennung aktiv: {ZIELORDNER}")
 
         try:
             while True:
