@@ -235,6 +235,26 @@ def hash_speichern(hashes):
 
 
 def pdf_hash(pfad):
+    """Hash nur der eingebetteten Bilddaten (JPEG-Streams), nicht der PDF-Metadaten.
+    Damit werden zwei Scans desselben Dokuments als Duplikat erkannt, auch wenn
+    Scanner Pro bei jedem Scan neue Metadaten (Erstellungsdatum, UUID) einbettet.
+    Fallback auf Datei-Hash, falls das Dokument keine eingebetteten Bilder enthält."""
+    try:
+        doc = fitz.open(pfad)
+        bilder_gefunden = False
+        h = hashlib.sha256()
+        for seite in doc:
+            for img in seite.get_images(full=True):
+                xref = img[0]
+                bild_bytes = doc.extract_image(xref)["image"]
+                h.update(bild_bytes)
+                bilder_gefunden = True
+        doc.close()
+        if bilder_gefunden:
+            return h.hexdigest()
+    except Exception:
+        pass
+    # Fallback: roher Datei-Hash (für text-basierte PDFs ohne eingebettete Bilder)
     h = hashlib.sha256()
     with open(pfad, "rb") as f:
         for chunk in iter(lambda: f.read(8192), b""):
