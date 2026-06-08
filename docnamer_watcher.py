@@ -49,6 +49,16 @@ KATEGORIEN_JSON      = os.path.join(os.path.dirname(__file__), "kategorien.json"
 STABILISIERUNGS_SECS = 3
 ICLOUD_TIMEOUT       = 60
 
+# API-Key: Umgebungsvariable hat Vorrang, Fallback auf ~/.docnamer_config
+_CONFIG_DATEI = os.path.expanduser("~/.docnamer_config")
+if not os.environ.get("ANTHROPIC_API_KEY") and os.path.exists(_CONFIG_DATEI):
+    with open(_CONFIG_DATEI) as _f:
+        for _zeile in _f:
+            _zeile = _zeile.strip()
+            if _zeile.startswith("ANTHROPIC_API_KEY="):
+                os.environ["ANTHROPIC_API_KEY"] = _zeile.split("=", 1)[1].strip('"\'')
+                break
+
 # ---------------------------------------------------------------------------
 # Ausgabe-Ordner anlegen (vor dem Logging!)
 # ---------------------------------------------------------------------------
