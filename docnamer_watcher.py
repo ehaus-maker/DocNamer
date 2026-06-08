@@ -234,32 +234,55 @@ def hash_speichern(hashes):
         json.dump(hashes, f, ensure_ascii=False, indent=2)
 
 
-def pdf_hash(pfad):
-    """Hash nur der eingebetteten Bilddaten (JPEG-Streams), nicht der PDF-Metadaten.
-    Damit werden zwei Scans desselben Dokuments als Duplikat erkannt, auch wenn
-    Scanner Pro bei jedem Scan neue Metadaten (Erstellungsdatum, UUID) einbettet.
-    Fallback auf Datei-Hash, falls das Dokument keine eingebetteten Bilder enthält."""
+def pdf_dhash(pfad, hash_groesse=8):
+    """Perceptueller dHash der ersten PDF-Seite.
+
+    Die Seite wird auf (hash_groesse+1) × hash_groesse Pixel in Graustufen
+    gerendert. Für jedes Pixel-Paar nebeneinander wird verglichen ob links
+    heller als rechts ist → 64-Bit-Fingerabdruck als Hex-String.
+
+    Zwei Scans desselben Dokuments liefern nahezu identische Hashes (kleine
+    Hamming-Distanz), völlig verschiedene Dokumente liefern große Abstände.
+    Fallback auf SHA-256 des Dateiinhalts wenn fitz die Seite nicht rendern kann."""
     try:
-        doc = fitz.open(pfad)
-        bilder_gefunden = False
-        h = hashlib.sha256()
-        for seite in doc:
-            for img in seite.get_images(full=True):
-                xref = img[0]
-                bild_bytes = doc.extract_image(xref)["image"]
-                h.update(bild_bytes)
-                bilder_gefunden = True
+        doc   = fitz.open(pfad)
+        seite = doc[0]
+        rect  = seite.rect
+        breite, hoehe = hash_groesse + 1, hash_groesse
+        sx = breite / rect.width
+        sy = hoehe  / rect.height
+        pix = seite.get_pixmap(matrix=fitz.Matrix(sx, sy), colorspace=fitz.csGRAY)
         doc.close()
-        if bilder_gefunden:
-            return h.hexdigest()
+        samples = pix.samples  # ein Byte pro Pixel, Graustufen
+        bits = []
+        for y in range(hoehe):
+            for x in range(hash_groesse):
+                links  = samples[y * breite + x]
+                rechts = samples[y * breite + x + 1]
+                bits.append(1 if links > rechts else 0)
+        n = 0
+        for bit in bits:
+            n = (n << 1) | bit
+        return format(n, f'0{hash_groesse * hash_groesse // 4}x')
     except Exception:
         pass
-    # Fallback: roher Datei-Hash (für text-basierte PDFs ohne eingebettete Bilder)
+    # Fallback: SHA-256 des rohen Dateiinhalts (text-basierte PDFs)
     h = hashlib.sha256()
     with open(pfad, "rb") as f:
         for chunk in iter(lambda: f.read(8192), b""):
             h.update(chunk)
     return h.hexdigest()
+
+
+DHASH_SCHWELLE = 8  # max. Hamming-Distanz für "gleiche" Dokumente (von 64 Bits)
+
+
+def hamming_distanz(a, b):
+    """Anzahl unterschiedlicher Bits zwischen zwei Hex-Strings gleicher Länge."""
+    if len(a) != len(b):
+        return 999
+    diff = int(a, 16) ^ int(b, 16)
+    return bin(diff).count("1")
 
 
 def icloud_download_erzwingen(pfad):
@@ -357,10 +380,19 @@ def verarbeite_pdf(pfad):
     datei_hash = None
     hashes = {}
     try:
-        datei_hash = pdf_hash(pfad)
+        datei_hash = pdf_dhash(pfad)
         hashes = hash_laden()
+        # Exakter Treffer oder naher perceptueller Treffer (Hamming-Distanz)
+        treffer_hash = None
         if datei_hash in hashes:
-            eintrag = hashes[datei_hash]
+            treffer_hash = datei_hash
+        else:
+            for bekannter_hash in hashes:
+                if hamming_distanz(datei_hash, bekannter_hash) <= DHASH_SCHWELLE:
+                    treffer_hash = bekannter_hash
+                    break
+        if treffer_hash:
+            eintrag = hashes[treffer_hash]
             datum   = eintrag["datum"] if isinstance(eintrag, dict) else eintrag
             log.info(f"  → Duplikat (verarbeitet am {datum}), verschiebe nach _Duplikate.")
             dup_pfad = eindeutiger_pfad(DUPLIKAT_ORDNER, datei)
