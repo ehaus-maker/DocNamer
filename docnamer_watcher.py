@@ -274,7 +274,7 @@ def pdf_dhash(pfad, hash_groesse=8):
     return h.hexdigest()
 
 
-DHASH_SCHWELLE = 8  # max. Hamming-Distanz für "gleiche" Dokumente (von 64 Bits)
+DHASH_SCHWELLE = 15  # max. Hamming-Distanz für "gleiche" Dokumente (von 64 Bits)
 
 
 def hamming_distanz(a, b):
