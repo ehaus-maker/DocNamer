@@ -29,7 +29,7 @@ The project has no build step, no test suite, no virtualenv checked in. Everythi
 /opt/homebrew/bin/python3 docnamer_korrektur.py --loesche <dateiname>
 ```
 
-System dependencies (installed via Homebrew, not pinned in any manifest): `ocrmypdf`, `tesseract`, `tesseract-lang`. Python deps (installed via `pip --break-system-packages`): `anthropic`, `pymupdf`, `watchdog`, `rumps`. There is no `requirements.txt` — keep the README's install block in sync if dependencies change.
+System dependencies are listed in **`Brewfile`** (`ocrmypdf`, `tesseract`, `tesseract-lang`). Python deps are listed in **`requirements.txt`** (`anthropic`, `pymupdf`, `watchdog`, `rumps`). **`DocNamer Installieren.command`** reads both files automatically — add new dependencies there, not hard-coded in the installer.
 
 ## Architecture
 

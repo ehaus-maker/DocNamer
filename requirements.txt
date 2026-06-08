@@ -1,0 +1,6 @@
+# Python-Abhängigkeiten für DocNamer
+# Installieren: pip install -r requirements.txt --break-system-packages
+anthropic
+pymupdf
+watchdog
+rumps

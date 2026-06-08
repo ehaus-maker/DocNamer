@@ -101,9 +101,9 @@ else
     echo "  → Homebrew bereits vorhanden: $(brew --version | head -1)"
 fi
 
-# Systempakete installieren
-echo "  → Installiere ocrmypdf, tesseract, tesseract-lang..."
-brew install ocrmypdf tesseract tesseract-lang 2>&1 | grep -E "Installing|Already|==>|Error" || true
+# Systempakete installieren (aus Brewfile)
+echo "  → Installiere Systempakete aus Brewfile..."
+brew bundle --file="$SCRIPT_DIR/Brewfile" 2>&1 | grep -E "Installing|Already installed|==>|Error" || true
 echo "  → Systempakete OK."
 
 # =============================================================================
@@ -125,8 +125,8 @@ if [[ -z "$PYTHON" ]]; then
 fi
 
 echo "  → Python: $($PYTHON --version)"
-echo "  → Installiere anthropic, pymupdf, watchdog, rumps..."
-"$PYTHON" -m pip install --quiet --break-system-packages anthropic pymupdf watchdog rumps 2>&1 | grep -v "^$" || true
+echo "  → Installiere Python-Pakete aus requirements.txt..."
+"$PYTHON" -m pip install --quiet --break-system-packages -r "$SCRIPT_DIR/requirements.txt" 2>&1 | grep -v "^$" || true
 echo "  → Python-Pakete OK."
 
 # =============================================================================
