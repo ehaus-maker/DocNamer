@@ -492,7 +492,7 @@ def verarbeite_pdf(pfad):
 DATE_MUSTER = __import__("re").compile(r"^\d{4}-\d{2}-\d{2}$")
 
 
-def neue_kategorie_eintragen(ordner_pfad):
+def neue_kategorie_eintragen(ordner_pfad, still=False):
     """Trägt einen neu im Finder angelegten Ordner als Kategorie in kategorien.json ein.
 
     Pfad-Logik:
@@ -542,11 +542,12 @@ def neue_kategorie_eintragen(ordner_pfad):
 
         kategorie_pfad = "/".join(teile)
         log.info(f"  ✓ Neue Kategorie in kategorien.json eingetragen: {kategorie_pfad}")
-        macos_notification(
-            "📁 DocNamer – Neue Kategorie erkannt",
-            kategorie_pfad,
-            "Kategorie wurde automatisch eingetragen. Beschreibung optional ergänzen."
-        )
+        if not still:
+            macos_notification(
+                "📁 DocNamer – Neue Kategorie erkannt",
+                kategorie_pfad,
+                "Kategorie wurde automatisch eingetragen. Beschreibung optional ergänzen."
+            )
 
     except Exception as e:
         log.warning(f"  → kategorien.json konnte nicht aktualisiert werden: {e}")
@@ -604,8 +605,25 @@ def fehler_zurueckholen():
         log.info(f"Retry: {zurueck} PDF(s) zurück verschoben.")
 
 
+def sortiert_ordner_abgleichen():
+    """Vergleicht beim Start alle Ordner in _Sortiert/ mit kategorien.json.
+    Ordner die nicht eingetragen sind werden nachgetragen – fängt Fälle ab
+    bei denen der Watcher beim Anlegen des Ordners nicht lief."""
+    if not os.path.exists(ZIELORDNER):
+        return
+    neu = 0
+    for root, dirs, _ in os.walk(ZIELORDNER):
+        for d in dirs:
+            pfad = os.path.join(root, d)
+            neue_kategorie_eintragen(pfad, still=True)  # idempotent, keine Notification beim Start
+            neu += 1
+    if neu:
+        log.info(f"Ordner-Abgleich: {neu} Ordner geprüft.")
+
+
 def startup_scan():
     fehler_zurueckholen()
+    sortiert_ordner_abgleichen()
     log.info("Startup-Scan: suche vorhandene PDFs...")
     gefunden = 0
     ordner_real = os.path.realpath(ORDNER)
