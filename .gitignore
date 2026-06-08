@@ -3,3 +3,5 @@ _Sortiert/
 _Duplikate/
 *.db
 *.csv
+*.log
+nohup.out

@@ -39,7 +39,7 @@ Three Python entry points share state through files on disk; there is no shared 
 
 1. `icloud_download_erzwingen` — detect `.NAME.icloud` placeholders and force `brctl download`, then poll up to `ICLOUD_TIMEOUT` seconds for the real file.
 2. Wait `STABILISIERUNGS_SECS` until the file size stops changing (PDFs from the scanner stream in over iCloud).
-3. SHA-256 hash check against `hashes.json` → duplicates go to `_Duplikate/`.
+3. Perceptual dHash (first page rendered at 9×8 px) compared against `hashes.json` with Hamming-distance ≤ 15 → duplicates go to `_Duplikate/`. Fallback to SHA-256 for text-only PDFs without embedded images.
 4. Extract text with `fitz` (first 5 pages, 20k chars). **Branching rule:** if extracted text ≥ 50 chars → `claude-haiku-4-5-20251001` (text path); otherwise render up to 3 pages at 2× zoom and send to `claude-sonnet-4-6` as base64 PNGs (vision path). The model IDs are hard-coded — if you change them, update the README table too.
 5. Both prompts demand a strict `{"category": "...", "filename": "..."}` JSON response. `parse_antwort` strips a possible ```json fence; `validiere_ergebnis` rejects categories that aren't in the flattened category list.
 6. On success, move into `_Sortiert/[<quellordner>/]<kategorie>/<filename>.pdf`, append to `umbenennung.csv`, record the hash. On failure, move to `_Fehler/`.
@@ -58,17 +58,17 @@ Three Python entry points share state through files on disk; there is no shared 
   docnamer.log, umbenennung.csv, hashes.json
 ```
 
-**`docnamer_menubar.py`** is a `rumps` menu-bar wrapper that launches `docnamer_watcher.py` as a subprocess (one-shot or persistent). It owns a `self.watcher_prozess` handle for stop/start. The "documents processed" count in the post-scan notification is computed by counting occurrences of `"Kategorie"` in stdout — fragile, so don't change that log string lightly. The icon path is hard-coded to an absolute `/Users/ehaus/...` path; this will need to become relative if anyone else runs it.
+**`docnamer_menubar.py`** is a `rumps` menu-bar wrapper that launches `docnamer_watcher.py` as a subprocess (one-shot or persistent). It owns a `self.watcher_prozess` handle for stop/start. The "documents processed" count in the post-scan notification is computed by counting occurrences of `"Kategorie"` in stdout — fragile, so don't change that log string lightly. The icon path is patched to a relative path by the installer.
 
 **`docnamer_korrektur.py`** edits `korrekturen.json`, an append-only list of `{original_filename, ocr_text_snippet, ki_kategorie, korrekte_kategorie, korrekter_filename}` records. **Important caveat:** despite what the README implies, `docnamer_watcher.py` does **not** currently read `korrekturen.json` — corrections are captured but not fed back into the prompt as few-shot examples. Wiring this in is an obvious next feature.
 
-**`DocNamer.app`** is a minimal `.app` bundle whose `Contents/MacOS/docnamer_launcher` is a shell script that runs `docnamer.command`. The `.command` file is the legacy AppleScript-dialog launcher (Einmal-Scan / Watcher / Korrektur). It tries conda env `docnamer`, then `.venv`, then `venv`, then system `python3` — but the menubar app is now the primary entry point.
+**`DocNamer.app`** is a minimal `.app` bundle whose `Contents/MacOS/docnamer_launcher` is a shell script that runs `docnamer.command`. The `.command` file is the legacy AppleScript-dialog launcher — the menubar app is now the primary entry point.
 
-**`com.docnamer.watcher.plist`** is a launchd template (not installed) with placeholder paths and an inline API key field. It documents the optional "run as a launch agent" path; treat it as a config sample, not active code.
+**`DocNamer Installieren.command`** is the clickable installer for new Macs. It reads `Brewfile` and `requirements.txt` for dependencies, asks for the API key via GUI dialogs, and stores it in `~/.docnamer_config`.
 
-## Legacy / dead code
+**`com.docnamer.watcher.plist`** is a launchd template (not installed) with placeholder paths. It documents the optional "run as a launch agent" path; treat it as a config sample, not active code.
 
-`docnamer_v1.py` and `docnamer_v2_vision.py` are early prototypes kept for reference and are not invoked by anything. Don't edit them when changing pipeline behavior.
+**`docnamer_watcher.py`** reads `ANTHROPIC_API_KEY` from the environment if set, otherwise from `~/.docnamer_config`.
 
 ## Conventions
 
