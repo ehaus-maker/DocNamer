@@ -132,14 +132,25 @@ def pdf_text_lesen(pfad):
     return text[:20000]
 
 
+BILD_MAX_BYTES = 4 * 1024 * 1024   # 4 MB pro Seite, sicher unter API-Limit
+
 def pdf_seiten_als_bilder(pfad, max_seiten=3):
+    """Rendert PDF-Seiten als JPEG für die Vision-API.
+    Zoom startet bei 1.5× und wird halbiert bis das Bild unter BILD_MAX_BYTES liegt."""
     doc = fitz.open(pfad)
     bilder = []
     for i in range(min(max_seiten, len(doc))):
         page = doc[i]
-        pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))
-        bildpfad = pfad.replace(".pdf", f"_seite_{i+1}.png")
-        pix.save(bildpfad)
+        zoom = 1.5
+        while zoom >= 0.5:
+            pix = page.get_pixmap(matrix=fitz.Matrix(zoom, zoom))
+            jpeg_bytes = pix.tobytes(output="jpeg", jpg_quality=85)
+            if len(jpeg_bytes) <= BILD_MAX_BYTES:
+                break
+            zoom -= 0.25
+        bildpfad = pfad.replace(".pdf", f"_seite_{i+1}.jpg")
+        with open(bildpfad, "wb") as f:
+            f.write(jpeg_bytes)
         bilder.append(bildpfad)
     return bilder
 
@@ -198,7 +209,7 @@ Antworte NUR mit JSON, kein erklärender Text:
             b64 = base64.b64encode(f.read()).decode("utf-8")
         content.append({
             "type": "image",
-            "source": {"type": "base64", "media_type": "image/png", "data": b64}
+            "source": {"type": "base64", "media_type": "image/jpeg", "data": b64}
         })
 
     r = client.messages.create(
