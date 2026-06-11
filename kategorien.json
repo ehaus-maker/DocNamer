@@ -27,7 +27,7 @@
     "beschreibung": "Spendenquittungen, Zuwendungsbestätigungen"
   },
   "Jahresverbrauchsabrechnungen": {
-    "beschreibung": "Strom, Wasser, Gas, Wärme, Verbrauchsabrechnungen, Entsorgung, TWRS, EVS, Energis"
+    "beschreibung": "Strom, Wasser, Gas, Wärme, Verbrauchsabrechnungen, Entsorgung, TWRS, EVS, Energis, Lauer Energie, Pellets, Brennholz"
   },
   "Anlagen und Beteiligungen": {
     "DLF": {
@@ -35,11 +35,11 @@
     },
     "Wohnpark Karow": {
       "beschreibung": "Verträge, Ausschüttungen, Berichte und Steuerunterlagen zum Wohnpark Karow"
-    },  
-"P&R Container": {
+    },
+    "P&R Container": {
       "beschreibung": "Korrespondenz, Verträge, Ausschüttungen, Berichte und Steuerunterlagen zu P&R Container"
     },
-   "Novalishaus": {
+    "Novalishaus": {
       "beschreibung": "Dokumente, Berichte, Ausschüttungen und Steuerunterlagen zum Novalishaus"
     }
   },
@@ -47,6 +47,9 @@
     "beschreibung": "Policen, Beitragsrechnungen, Vertragsänderungen, Schadensmeldungen"
   },
   "Sonstiges": {
-    "beschreibung": "Nicht eindeutig zuordenbare Dokumente"
+    "beschreibung": "Nicht eindeutig zuzuordnende Dokumente",
+    "ProWin": {
+      "beschreibung": "Dokumente, Rechnungen, Korrespondenz die ProWin enthalten"
+    }
   }
 }
