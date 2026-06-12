@@ -8,6 +8,12 @@ LOG_DATEI       = os.path.join(AUSGABE_BASIS, "docnamer.log")
 KATEGORIEN_JSON = os.path.join(SCRIPT_DIR, "kategorien.json")
 HASH_JSON       = os.path.join(AUSGABE_BASIS, "hashes.json")
 
+try:
+    with open(os.path.join(SCRIPT_DIR, "VERSION")) as _vf:
+        VERSION = _vf.read().strip()
+except Exception:
+    VERSION = "?"
+
 STANDARD_ORDNER = os.path.expanduser("~/Library/Mobile Documents/iCloud~com~readdle~Scanner~PDF/Documents")
 if not os.path.exists(STANDARD_ORDNER):
     STANDARD_ORDNER = os.path.expanduser("~/Library/Mobile Documents/iCloud~com~readdle~Scanner~PDF")
@@ -21,6 +27,8 @@ class DocNamerApp(rumps.App):
         self.watcher_prozess = None
         self.scan_ordner = STANDARD_ORDNER
         self.menu = [
+            rumps.MenuItem(f"DocNamer v{VERSION}"),
+            rumps.separator,
             rumps.MenuItem("📂 Ordner waehlen", callback=self.ordner_waehlen),
             rumps.separator,
             rumps.MenuItem("Einmal-Scan", callback=self.einmal_scan),

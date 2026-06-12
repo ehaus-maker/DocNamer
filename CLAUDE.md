@@ -70,6 +70,12 @@ Three Python entry points share state through files on disk; there is no shared 
 
 **`docnamer_watcher.py`** reads `ANTHROPIC_API_KEY` from the environment if set, otherwise from `~/.docnamer_config`.
 
+## Versioning
+
+Semantic versioning with the **`VERSION`** file as single source of truth (read by both `docnamer_watcher.py` and `docnamer_menubar.py` at startup — watcher logs it, menubar shows it as the first menu item). History: v1 = OpenAI prototype, v2 = vision prototype (tag `v2.0` on the initial commit), v3.x = the current Anthropic-based product.
+
+When completing a change, bump `VERSION` in the same commit: `fix:` → patch, `feat:` → minor, breaking workflow/format changes (e.g. hashes.json schema, kategorien.json structure) → major. Tag releases as `vX.Y.Z` and push with `--tags`. Not every commit needs a tag — tag when a coherent piece of work is done.
+
 ## Conventions
 
 - File-naming output format is enforced by the prompt, not validated in code: `YYYY-MM-DD_Hauptobjekt_Dokumenttyp_Zusatz` with no umlauts and no spaces. The "Hauptobjekt" is the document's subject, **not** the recipient — this distinction is explicit in the vision prompt and matters for things like insurance documents.

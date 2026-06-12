@@ -49,6 +49,13 @@ KATEGORIEN_JSON      = os.path.join(os.path.dirname(__file__), "kategorien.json"
 STABILISIERUNGS_SECS = 3
 ICLOUD_TIMEOUT       = 60
 
+# Version aus VERSION-Datei (Single Source of Truth)
+try:
+    with open(os.path.join(os.path.dirname(__file__), "VERSION")) as _vf:
+        VERSION = _vf.read().strip()
+except Exception:
+    VERSION = "?"
+
 # API-Key: Umgebungsvariable hat Vorrang, Fallback auf ~/.docnamer_config
 _CONFIG_DATEI = os.path.expanduser("~/.docnamer_config")
 if not os.environ.get("ANTHROPIC_API_KEY") and os.path.exists(_CONFIG_DATEI):
@@ -725,7 +732,7 @@ def startup_scan():
 if __name__ == "__main__":
     log.info("=" * 60)
     modus = "Einmal-Scan" if EINMAL_MODUS else "Watcher"
-    log.info(f"docnamer gestartet  [{modus}]")
+    log.info(f"DocNamer {VERSION} gestartet  [{modus}]")
     log.info(f"Überwachter Ordner : {ORDNER}")
     log.info(f"Zielordner         : {ZIELORDNER}")
     log.info(f"Fehlerordner       : {FEHLERORDNER}")
