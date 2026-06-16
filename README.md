@@ -19,8 +19,14 @@ Ein automatisches Dokumenten-Verwaltungssystem das gescannte PDFs erkennt, per K
 
 | Modell | Einsatz |
 |---|---|
-| `claude-haiku-4-5` | Textanalyse (schnell, günstig) |
-| `claude-sonnet-4-6` | Vision-Analyse (Scans ohne Text) |
+| `qwen2.5:14b` (Ollama, lokal) | Textanalyse – läuft lokal auf dem Mac Mini |
+| `claude-haiku-4-5` | Fallback für die Textanalyse, falls Ollama nicht erreichbar ist |
+| `claude-sonnet-4-6` | Vision-Analyse (Scans ohne Text) – bewusst immer über die Cloud |
+
+Der Textpfad läuft standardmäßig lokal über Ollama. Schlägt der Ollama-Aufruf
+fehl (Dienst aus, Modell fehlt, Timeout), fällt der Watcher automatisch auf
+`claude-haiku-4-5` zurück. Konfiguration über Umgebungsvariablen:
+`OLLAMA_HOST`, `DOCNAMER_OLLAMA_TEXT`, `DOCNAMER_OLLAMA_TIMEOUT`.
 
 ## Projektdateien
 

@@ -3,7 +3,8 @@ import os, sys, json, threading, subprocess, rumps
 
 SCRIPT_DIR      = os.path.dirname(os.path.abspath(__file__))
 WATCHER_SCRIPT  = os.path.join(SCRIPT_DIR, "docnamer_watcher.py")
-AUSGABE_BASIS   = os.path.expanduser("~/Documents/DocNamer")
+_ICLOUD_DOCS    = os.path.expanduser("~/Library/Mobile Documents/com~apple~CloudDocs/Documents")
+AUSGABE_BASIS   = os.path.join(_ICLOUD_DOCS, "DocNamer") if os.path.isdir(_ICLOUD_DOCS) else os.path.expanduser("~/Documents/DocNamer")
 LOG_DATEI       = os.path.join(AUSGABE_BASIS, "docnamer.log")
 KATEGORIEN_JSON = os.path.join(SCRIPT_DIR, "kategorien.json")
 HASH_JSON       = os.path.join(AUSGABE_BASIS, "hashes.json")

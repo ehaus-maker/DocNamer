@@ -10,6 +10,7 @@ import subprocess
 import hashlib
 import fitz
 import anthropic
+import urllib.request
 
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
@@ -36,7 +37,14 @@ else:
             "~/Library/Mobile Documents/iCloud~com~readdle~Scanner~PDF"
         )
 
-AUSGABE_BASIS   = os.path.expanduser("~/Documents/DocNamer")
+# Ausgabe bevorzugt in iCloud, damit sortierte Dokumente auf alle Geräte
+# zurücksyncen. ~/Documents ist nicht auf jedem Mac iCloud-synchronisiert
+# (z.B. ohne "Schreibtisch & Dokumente"-Sync), darum explizit der iCloud-Pfad.
+_ICLOUD_DOCS  = os.path.expanduser("~/Library/Mobile Documents/com~apple~CloudDocs/Documents")
+if os.path.isdir(_ICLOUD_DOCS):
+    AUSGABE_BASIS = os.path.join(_ICLOUD_DOCS, "DocNamer")
+else:
+    AUSGABE_BASIS = os.path.expanduser("~/Documents/DocNamer")
 ZIELORDNER      = os.path.join(AUSGABE_BASIS, "_Sortiert")
 FEHLERORDNER    = os.path.join(AUSGABE_BASIS, "_Fehler")
 DUPLIKAT_ORDNER = os.path.join(AUSGABE_BASIS, "_Duplikate")
@@ -65,6 +73,17 @@ if not os.environ.get("ANTHROPIC_API_KEY") and os.path.exists(_CONFIG_DATEI):
             if _zeile.startswith("ANTHROPIC_API_KEY="):
                 os.environ["ANTHROPIC_API_KEY"] = _zeile.split("=", 1)[1].strip('"\'')
                 break
+
+# ---------------------------------------------------------------------------
+# KI-Backend
+# ---------------------------------------------------------------------------
+# Textpfad läuft lokal über Ollama (Fehler-Fallback auf Anthropic-Haiku).
+# Der Vision-Pfad läuft bewusst IMMER über die Anthropic-Cloud (Sonnet),
+# weil ein kleines lokales Vision-Modell die Hauptobjekt-vs-Empfänger-Regel
+# und tiefe Kategorie-Pfade zu unzuverlässig trifft.
+OLLAMA_HOST         = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
+OLLAMA_MODELL_TEXT  = os.environ.get("DOCNAMER_OLLAMA_TEXT", "qwen2.5:14b")
+OLLAMA_TIMEOUT      = int(os.environ.get("DOCNAMER_OLLAMA_TIMEOUT", "180"))
 
 # ---------------------------------------------------------------------------
 # Ausgabe-Ordner anlegen (vor dem Logging!)
@@ -112,7 +131,37 @@ KATEGORIEN = kategorien_flatten(KATEGORIEN_INFO)
 # Anthropic
 # ---------------------------------------------------------------------------
 
-client = anthropic.Anthropic()
+_client = None
+
+
+def anthropic_client():
+    """Lazy-Init des Anthropic-Clients, damit reiner Textbetrieb über Ollama
+    nicht zwingend einen API-Key braucht (der Vision-Pfad braucht ihn weiterhin)."""
+    global _client
+    if _client is None:
+        _client = anthropic.Anthropic()
+    return _client
+
+
+def _ollama_chat(modell, messages):
+    """Ruft die lokale Ollama-Chat-API auf und liefert den Antworttext.
+    format=json erzwingt valides JSON, temperature=0 macht die Kategorie stabil.
+    keep_alive hält das Modell nur kurz im Speicher, passend zum schubweisen Scan-Workflow."""
+    payload = json.dumps({
+        "model": modell,
+        "messages": messages,
+        "stream": False,
+        "format": "json",
+        "options": {"temperature": 0},
+        "keep_alive": "60s",
+    }).encode("utf-8")
+    req = urllib.request.Request(
+        f"{OLLAMA_HOST}/api/chat",
+        data=payload,
+        headers={"Content-Type": "application/json"},
+    )
+    with urllib.request.urlopen(req, timeout=OLLAMA_TIMEOUT) as resp:
+        return json.loads(resp.read().decode("utf-8"))["message"]["content"]
 
 
 def parse_antwort(text):
@@ -183,7 +232,14 @@ Dokument:
 Antworte NUR mit JSON, kein erklärender Text:
 {{"category": "...", "filename": "..."}}"""
 
-    r = client.messages.create(
+    try:
+        inhalt = _ollama_chat(OLLAMA_MODELL_TEXT,
+                              [{"role": "user", "content": prompt}])
+        return validiere_ergebnis(parse_antwort(inhalt))
+    except Exception as e:
+        log.warning(f"Ollama-Textanalyse fehlgeschlagen ({e}) – Fallback auf Anthropic-Haiku")
+
+    r = anthropic_client().messages.create(
         model="claude-haiku-4-5-20251001",
         max_tokens=512,
         messages=[{"role": "user", "content": prompt}]
@@ -219,7 +275,7 @@ Antworte NUR mit JSON, kein erklärender Text:
             "source": {"type": "base64", "media_type": "image/jpeg", "data": b64}
         })
 
-    r = client.messages.create(
+    r = anthropic_client().messages.create(
         model="claude-sonnet-4-6",
         max_tokens=512,
         messages=[{"role": "user", "content": content}]

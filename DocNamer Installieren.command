@@ -106,6 +106,17 @@ echo "  → Installiere Systempakete aus Brewfile..."
 brew bundle --file="$SCRIPT_DIR/Brewfile" 2>&1 | grep -E "Installing|Already installed|==>|Error" || true
 echo "  → Systempakete OK."
 
+# Ollama-Dienst starten und lokales Textmodell laden (für den Textpfad).
+# Vision läuft bewusst über die Anthropic-Cloud, dafür wird kein lokales Modell gebraucht.
+if command -v ollama &>/dev/null; then
+    echo "  → Starte Ollama-Dienst..."
+    brew services start ollama 2>/dev/null || true
+    sleep 3
+    echo "  → Lade lokales Textmodell qwen2.5:14b (~9 GB, einmalig)..."
+    ollama pull qwen2.5:14b 2>&1 | tail -1 || true
+    echo "  → Ollama bereit."
+fi
+
 # =============================================================================
 # 3. Python & Pip-Pakete
 # =============================================================================
