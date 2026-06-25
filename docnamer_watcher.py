@@ -55,7 +55,9 @@ CSV_DATEI         = os.path.join(AUSGABE_BASIS, "umbenennung.csv")
 HASH_DATEI        = os.path.join(AUSGABE_BASIS, "hashes.json")
 
 KATEGORIEN_JSON      = os.path.join(os.path.dirname(__file__), "kategorien.json")
-STABILISIERUNGS_SECS = 3
+# Poll-Intervall, bis die Dateigröße stabil ist. Über die WebDAV-Inbox kommen
+# Dateien komplett an → kurz reicht; per Env feinjustierbar (iCloud ggf. höher).
+STABILISIERUNGS_SECS = float(os.environ.get("DOCNAMER_STABILISIERUNG", "1.0"))
 ICLOUD_TIMEOUT       = 60
 
 # --- Ollama (lokale Modelle) ---
@@ -66,6 +68,9 @@ OLLAMA_HOST          = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
 OLLAMA_MODELL_TEXT   = os.environ.get("DOCNAMER_OLLAMA_TEXT",   "qwen2.5:7b")
 OLLAMA_MODELL_VISION = os.environ.get("DOCNAMER_OLLAMA_VISION", "qwen2.5vl:7b")
 OLLAMA_TIMEOUT       = int(os.environ.get("DOCNAMER_OLLAMA_TIMEOUT", "300"))
+# Wie lange Ollama das Modell nach einem Aufruf geladen hält. "60s" lädt bei
+# sporadischen Scans jedes Mal neu (Kaltstart-Strafe); länger = Modell bleibt resident.
+OLLAMA_KEEPALIVE     = os.environ.get("DOCNAMER_OLLAMA_KEEPALIVE", "30m")
 
 # --- Betriebsschalter ---
 # Normalbetrieb ist rein lokal (OCR + Ollama-Text). Cloud-Vision wird NICHT
@@ -324,7 +329,7 @@ def _ollama_chat(modell, prompt, bilder_b64=None):
         "stream": False,
         "format": "json",
         "options": {"temperature": 0},
-        "keep_alive": "60s",
+        "keep_alive": OLLAMA_KEEPALIVE,
     }).encode("utf-8")
     req = urllib.request.Request(
         f"{OLLAMA_HOST}/api/chat",
