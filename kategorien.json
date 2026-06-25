@@ -1,68 +1,434 @@
 {
   "Reparatur Dienstleistungen": {
-    "beschreibung": "Handwerkerrechnungen, Reparaturen, Wartungen, Kundendienste, Instandsetzungen",
-    "verarbeitung": "cloud"
+    "beschreibung": "Rechnungen von Handwerkern und Dienstleistern für Reparatur, Wartung, Instandhaltung, Sanierung oder Prüfung an Gebäude, Heizung, Garten, Fahrzeug",
+    "verarbeitung": "cloud",
+    "unternehmen": [
+      "Schornsteinfegermeister",
+      "Rolladen Sonnenschutztechnik",
+      "ST Bausanierung",
+      "Fröling",
+      "Guta",
+      "MotorGarten",
+      "Garten-Geschenke"
+    ],
+    "dokumenttypen": [
+      "Handwerkerrechnung",
+      "Wartungsrechnung",
+      "Reparaturrechnung",
+      "Prüfbericht",
+      "Überprüfung"
+    ],
+    "stichwoerter": [
+      "Reparatur",
+      "Wartung",
+      "Instandsetzung",
+      "Kundendienst",
+      "Sanierung",
+      "Überprüfung",
+      "Montage"
+    ],
+    "abgrenzung": "Reine Material-/Warenkäufe ohne Dienstleistung gehören zu 'Rechnungen Büro Siersburg'.",
+    "beispiele": [
+      "2026-05-07_STBausanierung_Rechnung_2025",
+      "2023-02-08_Schornsteinfeger_Rechnung_2023"
+    ]
   },
   "Jahressteuerbescheinigungen": {
-    "beschreibung": "Steuerbescheide, Einkommensteuer, Grundsteuer, Gewerbesteuer, Finanzamt",
-    "verarbeitung": "lokal"
+    "beschreibung": "Bescheide und Bescheinigungen vom Finanzamt: Einkommensteuer, Grundsteuer, Gewerbesteuer, Umsatzsteuer, Kfz-Steuer",
+    "verarbeitung": "lokal",
+    "unternehmen": [
+      "Finanzamt",
+      "Hauptzollamt",
+      "Gemeinde Rehlingen-Siersburg"
+    ],
+    "dokumenttypen": [
+      "Steuerbescheid",
+      "Grundsteuerbescheid",
+      "Abgabenbescheid",
+      "Feststellungsbescheid"
+    ],
+    "stichwoerter": [
+      "Steuer",
+      "Finanzamt",
+      "Bescheid",
+      "Einkommensteuer",
+      "Grundsteuer",
+      "Gewerbesteuer"
+    ],
+    "abgrenzung": "Verbrauchsabhängige Gebührenbescheide (Müll, Wasser, Abwasser) gehören zu 'Jahresverbrauchsabrechnungen', nicht hierher.",
+    "beispiele": [
+      "2026-04-22_Finanzamt_Einkommensteuerbescheid_2025",
+      "2023-02-15_Gemeinde_Grundsteuerbescheid_2023"
+    ]
   },
   "Rechnungen Büro Siersburg": {
-    "beschreibung": "Rechnungen für Bürogebäude Siersburg, Nebenkosten, Dienstleistungen, Lieferanten",
-    "verarbeitung": "cloud"
+    "beschreibung": "Lieferanten- und Warenrechnungen für das Bürogebäude Siersburg: Bürobedarf, Werkzeug, Material, Online-Bestellungen",
+    "verarbeitung": "cloud",
+    "unternehmen": [
+      "Hornbach",
+      "Amazon",
+      "Springer Nature",
+      "AP Werkzeuge",
+      "Sortimo"
+    ],
+    "dokumenttypen": [
+      "Lieferantenrechnung",
+      "Warenrechnung",
+      "Bestellung",
+      "Lieferschein"
+    ],
+    "stichwoerter": [
+      "Bürobedarf",
+      "Werkzeug",
+      "Material",
+      "Bestellung",
+      "Lieferant"
+    ],
+    "abgrenzung": "Handwerker-/Dienstleistungsrechnungen gehören zu 'Reparatur Dienstleistungen'. Versicherungen zu 'Versicherungen'.",
+    "beispiele": [
+      "2026-06-16_Amazon_Rechnung_2026",
+      "2026-02-18_Hornbach_Rechnung_2026"
+    ]
   },
   "Zinsbescheinigungen": {
-    "beschreibung": "Zinsbescheinigungen, Darlehenszinsen, Sparkasse, Bank, Festgeld, Tagesgeld, Crypto",
-    "verarbeitung": "lokal"
+    "beschreibung": "Kapitalerträge und Zinsen: Zinsbescheinigungen, Darlehenszinsen, Erträgnisaufstellungen, Dividenden, Ausschüttungen aus Wertpapieren und Crowdinvesting",
+    "verarbeitung": "lokal",
+    "unternehmen": [
+      "Sparkasse Saarbrücken",
+      "Bergfürst"
+    ],
+    "dokumenttypen": [
+      "Zinsbescheinigung",
+      "Erträgnisaufstellung",
+      "Dividendenabrechnung",
+      "Darlehensabrechnung",
+      "Zinsaufstellung"
+    ],
+    "stichwoerter": [
+      "Zinsen",
+      "Dividende",
+      "Kapitalertrag",
+      "Ausschüttung",
+      "Darlehen",
+      "Festgeld",
+      "Tagesgeld"
+    ],
+    "abgrenzung": "Ausschüttungen/Berichte konkreter Beteiligungen (DLF, Wohnpark Karow, P&R, Novalishaus) gehören unter 'Anlagen und Beteiligungen'.",
+    "beispiele": [
+      "2025-12-31_Sparkasse_Zinsbescheinigung_2025",
+      "2024-04-22_Bank_Dividendenabrechnung_2023"
+    ]
   },
   "Beiträge Verbände": {
-    "beschreibung": "Mitgliedsbeiträge, Kammern, Verbände, Vereine",
-    "verarbeitung": "cloud"
+    "beschreibung": "Mitgliedsbeiträge von Kammern, Berufsverbänden, Vereinen und Mitgliederorganisationen",
+    "verarbeitung": "cloud",
+    "unternehmen": [
+      "ADAC",
+      "Ärztekammer",
+      "IHK",
+      "Handwerkskammer"
+    ],
+    "dokumenttypen": [
+      "Mitgliedsbeitrag",
+      "Beitragsbescheid",
+      "Beitragsordnung"
+    ],
+    "stichwoerter": [
+      "Mitgliedsbeitrag",
+      "Kammer",
+      "Verband",
+      "Verein",
+      "Mitgliedschaft"
+    ],
+    "abgrenzung": "KEINE Versicherungsbeiträge (→ Versicherungen), KEINE Krankenkassenbeiträge (→ Bescheinigung Beiträge Krankenversicherung), KEINE Kapitalerträge/Dividenden (→ Zinsbescheinigungen).",
+    "beispiele": [
+      "2026-02-10_ADAC_Mitgliedsbeitrag_2026",
+      "2023-10-11_Aerztekammer_Beitragsbescheid_2023"
+    ]
   },
   "Photovoltaik Abrechnungen": {
-    "beschreibung": "PV-Abrechnungen, Einspeisevergütung, Netzbetreiber, Stromerzeugung",
-    "verarbeitung": "cloud"
+    "beschreibung": "Abrechnungen rund um die eigene PV-Anlage: Einspeisevergütung, Netzbetreiber-Abrechnung, Stromerzeugung, Direktvermarktung",
+    "verarbeitung": "cloud",
+    "unternehmen": [
+      "Energis Netzgesellschaft"
+    ],
+    "dokumenttypen": [
+      "Einspeiseabrechnung",
+      "Vergütungsabrechnung",
+      "Erzeugungsnachweis"
+    ],
+    "stichwoerter": [
+      "Photovoltaik",
+      "PV",
+      "Einspeisevergütung",
+      "Einspeisung",
+      "Stromerzeugung",
+      "Direktvermarktung"
+    ],
+    "abgrenzung": "Strom-BEZUG/Verbrauchsabrechnungen gehören zu 'Jahresverbrauchsabrechnungen'. PV-VERSICHERUNG zu 'Versicherungen'.",
+    "beispiele": [
+      "2025-03-31_Netzbetreiber_Einspeiseabrechnung_2024"
+    ]
   },
   "Haushaltscheck Minijob": {
-    "beschreibung": "Minijob-Zentrale, Haushaltshilfe, Beschäftigungsnachweise",
-    "verarbeitung": "cloud"
+    "beschreibung": "Unterlagen der Minijob-Zentrale zum Haushaltsscheck-Verfahren für eine Haushaltshilfe",
+    "verarbeitung": "cloud",
+    "unternehmen": [
+      "Minijob-Zentrale",
+      "Knappschaft-Bahn-See"
+    ],
+    "dokumenttypen": [
+      "Haushaltsscheck",
+      "Beschäftigungsnachweis",
+      "Bescheinigung",
+      "Beitragsnachweis"
+    ],
+    "stichwoerter": [
+      "Minijob",
+      "Haushaltsscheck",
+      "Haushaltshilfe",
+      "geringfügige Beschäftigung"
+    ],
+    "abgrenzung": "Betrifft nur die Haushaltshilfe-Beschäftigung, nicht andere Beitrags-/Gebührenbescheide.",
+    "beispiele": [
+      "2024-02-09_Minijobzentrale_Bescheinigung_2024"
+    ]
   },
   "Bescheinigung Beiträge Krankenversicherung": {
-    "beschreibung": "Krankenversicherung, Beitragsnachweise, Steuerbescheinigungen Krankenversicherung",
-    "verarbeitung": "lokal"
+    "beschreibung": "Krankenversicherungsbeiträge und Beitragsbescheinigungen (auch zur Steuer), gesetzliche und private Krankenversicherung",
+    "verarbeitung": "lokal",
+    "unternehmen": [
+      "Techniker Krankenkasse",
+      "Barmer",
+      "AOK",
+      "DAK"
+    ],
+    "dokumenttypen": [
+      "Beitragsbescheinigung",
+      "Krankenkassenbescheinigung",
+      "Beitragsnachweis"
+    ],
+    "stichwoerter": [
+      "Krankenversicherung",
+      "Krankenkasse",
+      "Beitrag",
+      "Sozialversicherung",
+      "Beitragsbescheinigung"
+    ],
+    "abgrenzung": "Mitgliedsbeiträge von Verbänden/Vereinen gehören zu 'Beiträge Verbände', sonstige Versicherungen zu 'Versicherungen'.",
+    "beispiele": [
+      "2026-03-24_Krankenkasse_Beitragsbescheinigung_2025"
+    ]
   },
   "Spendenbescheinigungen": {
-    "beschreibung": "Spendenquittungen, Zuwendungsbestätigungen",
-    "verarbeitung": "cloud"
+    "beschreibung": "Spendenquittungen und Zuwendungsbestätigungen gemeinnütziger Organisationen",
+    "verarbeitung": "cloud",
+    "unternehmen": [],
+    "dokumenttypen": [
+      "Spendenbescheinigung",
+      "Zuwendungsbestätigung",
+      "Spendenquittung"
+    ],
+    "stichwoerter": [
+      "Spende",
+      "Zuwendung",
+      "gemeinnützig",
+      "Spendenbescheinigung"
+    ],
+    "abgrenzung": "Einnahmen-Überschuss-Rechnungen oder Berichte von Beteiligungen gehören NICHT hierher (→ 'Anlagen und Beteiligungen').",
+    "beispiele": [
+      "2023-04-01_Organisation_Spendenbescheinigung_2022"
+    ]
   },
   "Jahresverbrauchsabrechnungen": {
-    "beschreibung": "Strom, Wasser, Gas, Wärme, Verbrauchsabrechnungen, Entsorgung, TWRS, EVS, Energis, Lauer Energie, Pellets, Brennholz",
-    "verarbeitung": "cloud"
+    "beschreibung": "Verbrauchsabhängige Abrechnungen und Gebührenbescheide: Strom (Bezug), Wasser, Abwasser/Schmutzwasser, Gas, Wärme, Müll/Entsorgung, Pellets/Brennholz – auch unterjährig oder als Einzelrechnung, nicht nur Jahresabrechnung",
+    "verarbeitung": "cloud",
+    "unternehmen": [
+      "Energis",
+      "Lauer Energie",
+      "TWRS",
+      "EVS",
+      "Abfallwirtschaftsbetrieb",
+      "Stadtwerke"
+    ],
+    "dokumenttypen": [
+      "Verbrauchsabrechnung",
+      "Schlussrechnung",
+      "Jahresabrechnung",
+      "Abfallgebührenbescheid",
+      "Gebührenbescheid"
+    ],
+    "stichwoerter": [
+      "Strom",
+      "Wasser",
+      "Abwasser",
+      "Schmutzwasser",
+      "Gas",
+      "Wärme",
+      "Verbrauch",
+      "Entsorgung",
+      "Müll",
+      "Pellets",
+      "Brennholz",
+      "kWh",
+      "Zählerstand"
+    ],
+    "abgrenzung": "PV-EINSPEISUNG gehört zu 'Photovoltaik Abrechnungen'. Steuerbescheide des Finanzamts zu 'Jahressteuerbescheinigungen'.",
+    "beispiele": [
+      "2024-02-14_Energis_Schlussrechnung_2023",
+      "2024-02-13_Abfallwirtschaft_Gebuehrenbescheid_2023",
+      "2023-07-19_Pelletshandel_Rechnung_2023"
+    ]
   },
   "Anlagen und Beteiligungen": {
     "verarbeitung": "lokal",
     "DLF": {
-      "beschreibung": "Dokumente, Ausschüttungen, Jahresberichte und Steuerunterlagen zu DLF-Beteiligungen"
+      "beschreibung": "Dokumente, Ausschüttungen, Jahresberichte und Steuerunterlagen zu DLF-Beteiligungen",
+      "unternehmen": [
+        "DLF",
+        "Immobilienfonds",
+        "SEB"
+      ],
+      "dokumenttypen": [
+        "Ausschüttung",
+        "Jahresbericht",
+        "Beschlussfassung",
+        "Liquidation",
+        "Steuerbescheinigung"
+      ],
+      "stichwoerter": [
+        "DLF",
+        "Beteiligung",
+        "Immobilienfonds",
+        "Ausschüttung",
+        "Liquidation"
+      ],
+      "beispiele": [
+        "2023-12-03_DLF_Ausschuettung_2023"
+      ]
     },
     "Wohnpark Karow": {
-      "beschreibung": "Verträge, Ausschüttungen, Berichte und Steuerunterlagen zum Wohnpark Karow"
+      "beschreibung": "Verträge, Ausschüttungen, Berichte und Steuerunterlagen zum Wohnpark Karow",
+      "unternehmen": [
+        "Wohnpark Karow"
+      ],
+      "dokumenttypen": [
+        "Verlustrechnung",
+        "Ausschüttung",
+        "Bericht",
+        "Steuerunterlage"
+      ],
+      "stichwoerter": [
+        "Wohnpark Karow",
+        "Beteiligung",
+        "Verlustrechnung"
+      ],
+      "beispiele": [
+        "2018_WohnparkKarow_Verlustrechnung_2018"
+      ]
     },
     "P&R Container": {
-      "beschreibung": "Korrespondenz, Verträge, Ausschüttungen, Berichte und Steuerunterlagen zu P&R Container"
+      "beschreibung": "Korrespondenz, Verträge, Ausschüttungen, Berichte und Steuerunterlagen zu P&R Container",
+      "unternehmen": [
+        "P&R",
+        "P&R Container"
+      ],
+      "dokumenttypen": [
+        "Vertrag",
+        "Ausschüttung",
+        "Bericht",
+        "Korrespondenz"
+      ],
+      "stichwoerter": [
+        "P&R",
+        "Container",
+        "Beteiligung"
+      ],
+      "beispiele": []
     },
     "Novalishaus": {
-      "beschreibung": "Dokumente, Berichte, Ausschüttungen und Steuerunterlagen zum Novalishaus"
+      "beschreibung": "Dokumente, Berichte, Ausschüttungen, Wirtschaftspläne und Steuerunterlagen zum Novalishaus (auch Einnahmen-Überschuss-Rechnungen, Gesellschafterversammlungen)",
+      "unternehmen": [
+        "Novalishaus",
+        "Novalis Haus GbR"
+      ],
+      "dokumenttypen": [
+        "Wirtschaftsplan",
+        "Einnahmen-Überschuss-Rechnung",
+        "Gesellschafterversammlung",
+        "Protokoll",
+        "Ausschüttung"
+      ],
+      "stichwoerter": [
+        "Novalis",
+        "Novalishaus",
+        "GbR",
+        "Wirtschaftsplan",
+        "Gesellschafterversammlung"
+      ],
+      "beispiele": [
+        "2024-12-31_NovalisHausGbR_Wirtschaftsplan_2024"
+      ]
     }
   },
   "Versicherungen": {
-    "beschreibung": "Policen, Beitragsrechnungen, Vertragsänderungen, Schadensmeldungen",
-    "verarbeitung": "cloud"
+    "beschreibung": "Alle Dokumente zu Versicherungsverträgen: Policen, Beitragsrechnungen, Jahresrechnungen, Nachträge, Vertragsänderungen, Schadensmeldungen",
+    "verarbeitung": "cloud",
+    "unternehmen": [
+      "Allianz",
+      "ARAG",
+      "Janitos",
+      "HUK",
+      "DEVK",
+      "Signal Iduna",
+      "AXA",
+      "R+V",
+      "Gothaer"
+    ],
+    "dokumenttypen": [
+      "Versicherungsschein",
+      "Police",
+      "Beitragsrechnung",
+      "Jahresrechnung",
+      "Nachtrag",
+      "Schadensmeldung"
+    ],
+    "stichwoerter": [
+      "Versicherung",
+      "Police",
+      "Versicherungsschein",
+      "Beitrag",
+      "Deckung",
+      "Tarif",
+      "Nachtrag"
+    ],
+    "abgrenzung": "JEDES Dokument mit Bezug zu einer Versicherung gehört hierher – auch wenn es 'Rechnung' oder 'Beitrag' heißt. NICHT zu 'Rechnungen Büro Siersburg' oder 'Beiträge Verbände'.",
+    "beispiele": [
+      "2026-06-18_Allianz_Beitragsrechnung_2025",
+      "2023-09-23_ARAG_Beitragsrechnung_2023"
+    ]
   },
   "Sonstiges": {
-    "beschreibung": "Nicht eindeutig zuzuordnende Dokumente",
+    "beschreibung": "Nur verwenden, wenn keine andere Kategorie eindeutig passt",
     "verarbeitung": "cloud",
+    "unternehmen": [],
+    "dokumenttypen": [],
+    "stichwoerter": [],
+    "abgrenzung": "Letzte Wahl. Vorher alle anderen Kategorien prüfen.",
+    "beispiele": [],
     "ProWin": {
-      "beschreibung": "Dokumente, Rechnungen, Korrespondenz die ProWin enthalten"
+      "beschreibung": "Dokumente, Rechnungen, Korrespondenz die ProWin enthalten",
+      "unternehmen": [
+        "ProWin"
+      ],
+      "dokumenttypen": [
+        "Rechnung",
+        "Korrespondenz"
+      ],
+      "stichwoerter": [
+        "ProWin"
+      ],
+      "beispiele": []
     }
   }
 }

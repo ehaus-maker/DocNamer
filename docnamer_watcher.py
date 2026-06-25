@@ -211,6 +211,11 @@ def validiere_ergebnis(ergebnis):
         else:
             raise ValueError(f"Ungültige Kategorie: {ergebnis['category']}")
     ergebnis["category"] = cat
+    # Dateinamen säubern: evtl. mitgeliefertes .pdf entfernen (Code hängt es selbst an)
+    name = str(ergebnis["filename"]).strip()
+    while name.lower().endswith(".pdf"):
+        name = name[:-4].rstrip()
+    ergebnis["filename"] = name
     return ergebnis
 
 
@@ -275,21 +280,137 @@ def _bilder_base64(bildpfade):
     return out
 
 
-def _info_ohne_meta(d):
-    """KATEGORIEN_INFO ohne das Meta-Feld 'verarbeitung' (Beschreibungen bleiben),
-    damit der Prompt nicht durch Routing-Metadaten verrauscht wird."""
-    out = {}
-    for k, v in d.items():
-        if k == "verarbeitung":
-            continue
-        out[k] = _info_ohne_meta(v) if isinstance(v, dict) else v
-    return out
+def _kategorie_knoten(pfad):
+    """Liefert das Blatt-dict einer Kategorie über ihren Slash-Pfad."""
+    knoten = KATEGORIEN_INFO
+    for teil in pfad.split("/"):
+        knoten = knoten[teil]
+    return knoten
 
 
-def analyse_prompt(dateiname, text=None):
-    """Strenger Prompt für Kategorie + Dateiname – verhindert erfundene Kategorien."""
+def _kb_block():
+    """Kompakter Kategorie-Block für den Prompt: pro Kategorie nur Beschreibung und
+    Abgrenzung (die negativen Hinweise). Absender/Stichwörter bleiben bewusst DRAUSSEN –
+    die nutzt der deterministische Absender-Lookup VOR dem Modell (schnell + exakt),
+    nicht der Prompt (das würde ihn aufblähen und das Modell verwirren)."""
+    bloecke = []
+    for pfad in KATEGORIEN:
+        k = _kategorie_knoten(pfad)
+        zeilen = [f"### {pfad}"]
+        if k.get("beschreibung"):
+            zeilen.append(k["beschreibung"])
+        if k.get("abgrenzung"):
+            zeilen.append(f"Abgrenzung: {k['abgrenzung']}")
+        bloecke.append("\n".join(zeilen))
+    return "\n\n".join(bloecke)
+
+
+# ---------------------------------------------------------------------------
+# Absender-Lookup: bekannte Firmen → Kategorie (deterministisch, ohne LLM)
+# ---------------------------------------------------------------------------
+
+def unternehmen_index(info=None):
+    """Baut {firma_lower: kategorie_pfad} aus den 'unternehmen'-Listen der KB."""
+    idx = {}
+    for pfad in kategorien_flatten(info or KATEGORIEN_INFO):
+        knoten = info or KATEGORIEN_INFO
+        for teil in pfad.split("/"):
+            knoten = knoten[teil]
+        for firma in knoten.get("unternehmen", []):
+            f = firma.strip().lower()
+            if len(f) >= 3:
+                idx.setdefault(f, pfad)
+    return idx
+
+
+_UNTERNEHMEN_INDEX = unternehmen_index()
+
+
+def lookup_kategorie(text, dateiname=""):
+    """Sucht bekannte Absender in Text+Dateiname. Nur wenn GENAU EINE Kategorie
+    eindeutig matcht, wird sie zurückgegeben – sonst None (dann entscheidet das Modell)."""
+    heu = f"{dateiname}\n{text}".lower()
+    treffer = {kat for firma, kat in _UNTERNEHMEN_INDEX.items() if firma in heu}
+    return treffer.pop() if len(treffer) == 1 else None
+
+
+# Pfade, die das System selbst in _Sortiert geschrieben hat – die werden NICHT gelernt.
+_SELBST_EINSORTIERT = set()
+
+
+def kategorien_neu_laden():
+    """Liest kategorien.json neu ein und baut Kategorienliste + Absender-Index neu auf."""
+    global KATEGORIEN_INFO, KATEGORIEN, _UNTERNEHMEN_INDEX
+    with open(KATEGORIEN_JSON, encoding="utf-8") as f:
+        KATEGORIEN_INFO = json.load(f)
+    KATEGORIEN = kategorien_flatten(KATEGORIEN_INFO)
+    _UNTERNEHMEN_INDEX = unternehmen_index()
+
+
+def _kategorie_aus_ordner(ordnerpfad):
+    """Kategorie-Slash-Pfad aus einem _Sortiert-Unterordner; ein Scanner-Datums-Subordner
+    wird übersprungen. None, wenn außerhalb von _Sortiert oder keine bekannte Kategorie."""
+    try:
+        rel = os.path.relpath(os.path.realpath(ordnerpfad), os.path.realpath(ZIELORDNER))
+    except ValueError:
+        return None
+    if rel.startswith(".."):
+        return None
+    teile = [t for t in rel.split(os.sep) if t and t != "."]
+    if teile and DATE_MUSTER.match(teile[0]):
+        teile = teile[1:]
+    kat = "/".join(teile)
+    return kat if kat in KATEGORIEN else None
+
+
+def _absender_aus_dateiname(dateiname):
+    """Feld 2 (Absender) aus 'YYYY-MM-DD_Absender_Typ_Jahr.pdf'. None, wenn Schema nicht passt."""
+    name = os.path.splitext(os.path.basename(dateiname))[0]
+    teile = name.split("_")
+    if len(teile) >= 2 and DATE_MUSTER.match(teile[0]) and len(teile[1]) >= 2:
+        return teile[1]
+    return None
+
+
+def lerne_absender(dest_pfad):
+    """Lernt aus einer MANUELL in eine _Sortiert-Kategorie gelegten Datei den Absender und
+    trägt ihn in 'unternehmen' der Zielkategorie ein. Eigene Schreibvorgänge des Systems
+    werden übersprungen – so lernt DocNamer nur aus echten Nutzer-Korrekturen."""
+    real = os.path.realpath(dest_pfad)
+    if real in _SELBST_EINSORTIERT:
+        _SELBST_EINSORTIERT.discard(real)
+        return
+    if not dest_pfad.lower().endswith(".pdf"):
+        return
+    kategorie = _kategorie_aus_ordner(os.path.dirname(dest_pfad))
+    absender  = _absender_aus_dateiname(dest_pfad)
+    if not kategorie or not absender:
+        return
+    if _UNTERNEHMEN_INDEX.get(absender.lower()) == kategorie:
+        return  # schon bekannt
+    try:
+        with open(KATEGORIEN_JSON, encoding="utf-8") as f:
+            daten = json.load(f)
+        knoten = daten
+        for teil in kategorie.split("/"):
+            knoten = knoten[teil]
+        liste = knoten.setdefault("unternehmen", [])
+        if absender not in liste:
+            liste.append(absender)
+            with open(KATEGORIEN_JSON, "w", encoding="utf-8") as f:
+                json.dump(daten, f, ensure_ascii=False, indent=2)
+            kategorien_neu_laden()
+            log.info(f"  🧠 Gelernt: Absender '{absender}' → {kategorie}")
+    except Exception as e:
+        log.warning(f"  → Lernen fehlgeschlagen: {e}")
+
+
+def analyse_prompt(dateiname, text=None, fehler_hinweis=None):
+    """Strenger Prompt für Kategorie + Dateiname – verhindert erfundene Kategorien.
+    fehler_hinweis: bei einem Retry der Korrekturtext zur vorigen ungültigen Antwort."""
     teil_text = f"\n\nDokument:\n{text}" if text else ""
-    return f"""Du bist ein präziser Dokumenten-Sortierer. Antworte AUSSCHLIESSLICH mit einem JSON-Objekt.
+    hinweis_block = f"\n\n‼️ KORREKTUR: {fehler_hinweis}\n" if fehler_hinweis else ""
+    return f"""Du bist ein präziser Dokumenten-Sortierer. Antworte AUSSCHLIESSLICH mit einem JSON-Objekt.{hinweis_block}
 
 REGELN für "category" – sehr wichtig:
 - Wähle GENAU EINE Kategorie aus der Liste unten.
@@ -297,15 +418,19 @@ REGELN für "category" – sehr wichtig:
 - Du darfst Kategorien NIEMALS erfinden, übersetzen, kürzen, kombinieren oder umformulieren.
 - Gibt es keine eindeutig passende Kategorie, verwende exakt: "Sonstiges".
 
-ERLAUBTE KATEGORIEN (nur exakt diese Schreibweisen sind gültig):
-{json.dumps(KATEGORIEN, ensure_ascii=False, indent=2)}
+ERLAUBTE KATEGORIEN – die "category" ist GENAU der Pfad aus der ###-Überschrift
+(bei Unterkategorien inkl. Schrägstrich, z.B. "Anlagen und Beteiligungen/DLF").
+Nutze "Typische Absender", "Dokumenttypen", "Stichwörter" und "Abgrenzung" zum Einordnen:
 
-Kurzbeschreibungen zur Einordnung:
-{json.dumps(_info_ohne_meta(KATEGORIEN_INFO), ensure_ascii=False, indent=2)}
+{_kb_block()}
 
 REGELN für "filename":
-- Format: YYYY-MM-DD_Hauptobjekt_Dokumenttyp_Zusatz
-- keine Umlaute, keine Leerzeichen; das Objekt des Dokuments, nicht der Empfänger.
+- Format: YYYY-MM-DD_Absender_Dokumenttyp_Abrechnungsjahr
+- YYYY-MM-DD = Belegdatum des Dokuments.
+- Absender = ausstellende Firma/Organisation, kurz (z.B. Allianz, Sparkasse, Finanzamt) – NICHT der Empfänger.
+- Dokumenttyp = Art des Dokuments (z.B. Rechnung, Beitragsrechnung, Zinsbescheinigung, Einkommensteuerbescheid).
+- Abrechnungsjahr = Jahr, auf das sich das Dokument bezieht (z.B. 2025); weglassen, wenn nicht erkennbar.
+- keine Umlaute, keine Leerzeichen (mehrteilige Felder als CamelCase), Felder mit _ trennen, kurz halten.
 
 Originaldateiname: {dateiname}{teil_text}
 
@@ -340,15 +465,29 @@ def _ollama_chat(modell, prompt, bilder_b64=None):
         return json.loads(resp.read().decode("utf-8"))["message"]["content"]
 
 
+def _analyse_lokal(modell, dateiname, text=None, bildpfade=None):
+    """Ollama-Analyse mit einem Retry: scheitert die Validierung (ungültige/erfundene
+    Kategorie, fehlende Felder), wird einmal mit Korrekturhinweis nachgefragt, der das
+    Modell auf die erlaubte Liste bzw. "Sonstiges" zwingt. Erst dann schlägt es fehl."""
+    bilder = _bilder_base64(bildpfade) if bildpfade else None
+    inhalt = _ollama_chat(modell, analyse_prompt(dateiname, text), bilder_b64=bilder)
+    try:
+        return validiere_ergebnis(parse_antwort(inhalt))
+    except (ValueError, json.JSONDecodeError) as e:
+        log.info(f"  ↻ Ungültige Antwort ({e}) – Retry mit Korrekturhinweis")
+        hinweis = (f'Deine letzte Antwort war ungültig ({e}). Wähle JETZT GENAU EINE '
+                   f'Kategorie ZEICHENGENAU aus der erlaubten Liste oben – oder, wenn '
+                   f'keine eindeutig passt, exakt "Sonstiges". Erfinde keine Kategorie.')
+        inhalt = _ollama_chat(modell, analyse_prompt(dateiname, text, hinweis), bilder_b64=bilder)
+        return validiere_ergebnis(parse_antwort(inhalt))
+
+
 def analyse_lokal_text(dateiname, text):
-    inhalt = _ollama_chat(OLLAMA_MODELL_TEXT, analyse_prompt(dateiname, text))
-    return validiere_ergebnis(parse_antwort(inhalt))
+    return _analyse_lokal(OLLAMA_MODELL_TEXT, dateiname, text=text)
 
 
 def analyse_lokal_bild(dateiname, bildpfade):
-    inhalt = _ollama_chat(OLLAMA_MODELL_VISION, analyse_prompt(dateiname),
-                          bilder_b64=_bilder_base64(bildpfade))
-    return validiere_ergebnis(parse_antwort(inhalt))
+    return _analyse_lokal(OLLAMA_MODELL_VISION, dateiname, bildpfade=bildpfade)
 
 
 client = anthropic.Anthropic()
@@ -636,6 +775,13 @@ def verarbeite_pdf(pfad):
             leere_ordner_archivieren()
             return
 
+        # Absender-Lookup hat Vorrang vor dem Modell: kennt die KB die Firma eindeutig,
+        # gewinnt der deterministische Treffer (schnell + exakt für Stammabsender).
+        treffer = lookup_kategorie(text, datei)
+        if treffer and treffer != ergebnis["category"]:
+            log.info(f"  ↪ Absender-Lookup: {ergebnis['category']} → {treffer}")
+            ergebnis["category"] = treffer
+
         kategorie = ergebnis["category"]
         filename  = ergebnis["filename"] + ".pdf"
 
@@ -646,6 +792,7 @@ def verarbeite_pdf(pfad):
         os.makedirs(zielordner, exist_ok=True)
         zielpfad = eindeutiger_pfad(zielordner, filename)
 
+        _SELBST_EINSORTIERT.add(os.path.realpath(zielpfad))  # eigener Schreibvorgang, nicht lernen
         shutil.move(pfad, zielpfad)
         csv_zeile_schreiben(pfad, zielpfad, kategorie)
         log.info(f"  ✓ Kategorie : {kategorie}  (lokal)")
@@ -822,11 +969,15 @@ class SortierOrdnerHandler(FileSystemEventHandler):
     """Überwacht _Sortiert/ auf neue und umbenannte Ordner → kategorien.json."""
 
     def on_created(self, event):
-        if event.is_directory and not _ist_temp_name(event.src_path):
-            neue_kategorie_eintragen(event.src_path)
+        if event.is_directory:
+            if not _ist_temp_name(event.src_path):
+                neue_kategorie_eintragen(event.src_path)
+        else:
+            lerne_absender(event.src_path)          # manuell hineingelegte Datei → lernen
 
     def on_moved(self, event):
         if not event.is_directory:
+            lerne_absender(event.dest_path)          # manuell verschobene Datei → lernen
             return
         if _ist_temp_name(event.src_path):
             neue_kategorie_eintragen(event.dest_path)
