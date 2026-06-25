@@ -1,0 +1,55 @@
+{
+  "Reparatur Dienstleistungen": {
+    "beschreibung": "Handwerkerrechnungen, Reparaturen, Wartungen, Kundendienste, Instandsetzungen"
+  },
+  "Jahressteuerbescheinigungen": {
+    "beschreibung": "Steuerbescheide, Einkommensteuer, Grundsteuer, Gewerbesteuer, Finanzamt"
+  },
+  "Rechnungen Büro Siersburg": {
+    "beschreibung": "Rechnungen für Bürogebäude Siersburg, Nebenkosten, Dienstleistungen, Lieferanten"
+  },
+  "Zinsbescheinigungen": {
+    "beschreibung": "Zinsbescheinigungen, Darlehenszinsen, Sparkasse, Bank, Festgeld, Tagesgeld, Crypto"
+  },
+  "Beiträge Verbände": {
+    "beschreibung": "Mitgliedsbeiträge, Kammern, Verbände, Vereine"
+  },
+  "Photovoltaik Abrechnungen": {
+    "beschreibung": "PV-Abrechnungen, Einspeisevergütung, Netzbetreiber, Stromerzeugung"
+  },
+  "Haushaltscheck Minijob": {
+    "beschreibung": "Minijob-Zentrale, Haushaltshilfe, Beschäftigungsnachweise"
+  },
+  "Bescheinigung Beiträge Krankenversicherung": {
+    "beschreibung": "Krankenversicherung, Beitragsnachweise, Steuerbescheinigungen Krankenversicherung"
+  },
+  "Spendenbescheinigungen": {
+    "beschreibung": "Spendenquittungen, Zuwendungsbestätigungen"
+  },
+  "Jahresverbrauchsabrechnungen": {
+    "beschreibung": "Strom, Wasser, Gas, Wärme, Verbrauchsabrechnungen, Entsorgung, TWRS, EVS, Energis, Lauer Energie, Pellets, Brennholz"
+  },
+  "Anlagen und Beteiligungen": {
+    "DLF": {
+      "beschreibung": "Dokumente, Ausschüttungen, Jahresberichte und Steuerunterlagen zu DLF-Beteiligungen"
+    },
+    "Wohnpark Karow": {
+      "beschreibung": "Verträge, Ausschüttungen, Berichte und Steuerunterlagen zum Wohnpark Karow"
+    },
+    "P&R Container": {
+      "beschreibung": "Korrespondenz, Verträge, Ausschüttungen, Berichte und Steuerunterlagen zu P&R Container"
+    },
+    "Novalishaus": {
+      "beschreibung": "Dokumente, Berichte, Ausschüttungen und Steuerunterlagen zum Novalishaus"
+    }
+  },
+  "Versicherungen": {
+    "beschreibung": "Policen, Beitragsrechnungen, Vertragsänderungen, Schadensmeldungen"
+  },
+  "Sonstiges": {
+    "beschreibung": "Nicht eindeutig zuzuordnende Dokumente",
+    "ProWin": {
+      "beschreibung": "Dokumente, Rechnungen, Korrespondenz die ProWin enthalten"
+    }
+  }
+}

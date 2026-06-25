@@ -1,35 +1,46 @@
 {
   "Reparatur Dienstleistungen": {
-    "beschreibung": "Handwerkerrechnungen, Reparaturen, Wartungen, Kundendienste, Instandsetzungen"
+    "beschreibung": "Handwerkerrechnungen, Reparaturen, Wartungen, Kundendienste, Instandsetzungen",
+    "verarbeitung": "cloud"
   },
   "Jahressteuerbescheinigungen": {
-    "beschreibung": "Steuerbescheide, Einkommensteuer, Grundsteuer, Gewerbesteuer, Finanzamt"
+    "beschreibung": "Steuerbescheide, Einkommensteuer, Grundsteuer, Gewerbesteuer, Finanzamt",
+    "verarbeitung": "lokal"
   },
   "Rechnungen Büro Siersburg": {
-    "beschreibung": "Rechnungen für Bürogebäude Siersburg, Nebenkosten, Dienstleistungen, Lieferanten"
+    "beschreibung": "Rechnungen für Bürogebäude Siersburg, Nebenkosten, Dienstleistungen, Lieferanten",
+    "verarbeitung": "cloud"
   },
   "Zinsbescheinigungen": {
-    "beschreibung": "Zinsbescheinigungen, Darlehenszinsen, Sparkasse, Bank, Festgeld, Tagesgeld, Crypto"
+    "beschreibung": "Zinsbescheinigungen, Darlehenszinsen, Sparkasse, Bank, Festgeld, Tagesgeld, Crypto",
+    "verarbeitung": "lokal"
   },
   "Beiträge Verbände": {
-    "beschreibung": "Mitgliedsbeiträge, Kammern, Verbände, Vereine"
+    "beschreibung": "Mitgliedsbeiträge, Kammern, Verbände, Vereine",
+    "verarbeitung": "cloud"
   },
   "Photovoltaik Abrechnungen": {
-    "beschreibung": "PV-Abrechnungen, Einspeisevergütung, Netzbetreiber, Stromerzeugung"
+    "beschreibung": "PV-Abrechnungen, Einspeisevergütung, Netzbetreiber, Stromerzeugung",
+    "verarbeitung": "cloud"
   },
   "Haushaltscheck Minijob": {
-    "beschreibung": "Minijob-Zentrale, Haushaltshilfe, Beschäftigungsnachweise"
+    "beschreibung": "Minijob-Zentrale, Haushaltshilfe, Beschäftigungsnachweise",
+    "verarbeitung": "cloud"
   },
   "Bescheinigung Beiträge Krankenversicherung": {
-    "beschreibung": "Krankenversicherung, Beitragsnachweise, Steuerbescheinigungen Krankenversicherung"
+    "beschreibung": "Krankenversicherung, Beitragsnachweise, Steuerbescheinigungen Krankenversicherung",
+    "verarbeitung": "lokal"
   },
   "Spendenbescheinigungen": {
-    "beschreibung": "Spendenquittungen, Zuwendungsbestätigungen"
+    "beschreibung": "Spendenquittungen, Zuwendungsbestätigungen",
+    "verarbeitung": "cloud"
   },
   "Jahresverbrauchsabrechnungen": {
-    "beschreibung": "Strom, Wasser, Gas, Wärme, Verbrauchsabrechnungen, Entsorgung, TWRS, EVS, Energis, Lauer Energie, Pellets, Brennholz"
+    "beschreibung": "Strom, Wasser, Gas, Wärme, Verbrauchsabrechnungen, Entsorgung, TWRS, EVS, Energis, Lauer Energie, Pellets, Brennholz",
+    "verarbeitung": "cloud"
   },
   "Anlagen und Beteiligungen": {
+    "verarbeitung": "lokal",
     "DLF": {
       "beschreibung": "Dokumente, Ausschüttungen, Jahresberichte und Steuerunterlagen zu DLF-Beteiligungen"
     },
@@ -44,10 +55,12 @@
     }
   },
   "Versicherungen": {
-    "beschreibung": "Policen, Beitragsrechnungen, Vertragsänderungen, Schadensmeldungen"
+    "beschreibung": "Policen, Beitragsrechnungen, Vertragsänderungen, Schadensmeldungen",
+    "verarbeitung": "cloud"
   },
   "Sonstiges": {
     "beschreibung": "Nicht eindeutig zuzuordnende Dokumente",
+    "verarbeitung": "cloud",
     "ProWin": {
       "beschreibung": "Dokumente, Rechnungen, Korrespondenz die ProWin enthalten"
     }

@@ -3,7 +3,7 @@ import os, sys, json, threading, subprocess, rumps
 
 SCRIPT_DIR      = os.path.dirname(os.path.abspath(__file__))
 WATCHER_SCRIPT  = os.path.join(SCRIPT_DIR, "docnamer_watcher.py")
-AUSGABE_BASIS   = os.path.expanduser("~/Documents/DocNamer")
+AUSGABE_BASIS   = "/Users/ehaus/DocNamer-Lab/Out"
 LOG_DATEI       = os.path.join(AUSGABE_BASIS, "docnamer.log")
 KATEGORIEN_JSON = os.path.join(SCRIPT_DIR, "kategorien.json")
 HASH_JSON       = os.path.join(AUSGABE_BASIS, "hashes.json")
@@ -14,7 +14,7 @@ try:
 except Exception:
     VERSION = "?"
 
-STANDARD_ORDNER = os.path.expanduser("~/Library/Mobile Documents/iCloud~com~readdle~Scanner~PDF/Documents")
+STANDARD_ORDNER = "/Users/ehaus/DocNamer-Lab/Inbox"
 if not os.path.exists(STANDARD_ORDNER):
     STANDARD_ORDNER = os.path.expanduser("~/Library/Mobile Documents/iCloud~com~readdle~Scanner~PDF")
 
@@ -23,11 +23,13 @@ PYTHON = "/opt/homebrew/bin/python3"
 class DocNamerApp(rumps.App):
 
     def __init__(self):
-        super().__init__("DN", icon=os.path.join(SCRIPT_DIR, "icon_template.png"), template=True, quit_button=None)
+        super().__init__("DN-Lab", icon=os.path.join(SCRIPT_DIR, "icon_template.png"), template=True, quit_button=None)
         self.watcher_prozess = None
         self.scan_ordner = STANDARD_ORDNER
+        self.ordner_anzeige = rumps.MenuItem(f"📂 Quelle: {self.scan_ordner}")
         self.menu = [
             rumps.MenuItem(f"DocNamer v{VERSION}"),
+            self.ordner_anzeige,
             rumps.separator,
             rumps.MenuItem("📂 Ordner waehlen", callback=self.ordner_waehlen),
             rumps.separator,
@@ -41,6 +43,9 @@ class DocNamerApp(rumps.App):
             rumps.MenuItem("Log anzeigen", callback=self.log_anzeigen),
             rumps.MenuItem("Sortiert oeffnen", callback=self.sortiert_oeffnen),
             rumps.separator,
+            rumps.MenuItem("👁 Vision-Ordner oeffnen", callback=self.vision_ordner_oeffnen),
+            rumps.MenuItem("👁 Vision verarbeiten (Cloud)", callback=self.vision_verarbeiten),
+            rumps.separator,
             rumps.MenuItem("Beenden", callback=self.beenden),
         ]
 
@@ -49,6 +54,7 @@ class DocNamerApp(rumps.App):
         pfad = result.stdout.strip().rstrip("/")
         if pfad:
             self.scan_ordner = pfad
+            self.ordner_anzeige.title = f"📂 Quelle: {self.scan_ordner}"
             rumps.notification("DocNamer", "Ordner geaendert", pfad)
 
     def einmal_scan(self, _):
@@ -93,6 +99,29 @@ class DocNamerApp(rumps.App):
         sortiert = os.path.join(AUSGABE_BASIS, "_Sortiert")
         os.makedirs(sortiert, exist_ok=True)
         subprocess.run(["open", sortiert])
+
+    def vision_ordner_oeffnen(self, _):
+        ordner = os.path.join(AUSGABE_BASIS, "_BrauchtVision")
+        os.makedirs(ordner, exist_ok=True)
+        subprocess.run(["open", ordner])
+
+    def vision_verarbeiten(self, _):
+        ordner = os.path.join(AUSGABE_BASIS, "_BrauchtVision")
+        anzahl = len([f for f in os.listdir(ordner) if f.lower().endswith(".pdf")]) if os.path.isdir(ordner) else 0
+        if anzahl == 0:
+            rumps.alert("Vision verarbeiten", "_BrauchtVision ist leer – nichts zu tun.")
+            return
+        if rumps.alert("Vision verarbeiten (Cloud)",
+                       f"{anzahl} Dokument(e) aus _BrauchtVision werden zur Cloud-Vision (Sonnet) "
+                       f"geschickt.\n\nUnerwünschte vorher entfernen!\n\nFortfahren?",
+                       ok="Senden", cancel="Abbrechen") != 1:
+            return
+        def lauf():
+            r = subprocess.run([PYTHON, WATCHER_SCRIPT, "--vision"], capture_output=True, text=True)
+            fertig = r.stdout.count("cloud-vision")
+            rumps.notification("DocNamer", "Vision abgeschlossen", f"{fertig} Dokument(e) verarbeitet")
+        threading.Thread(target=lauf, daemon=True).start()
+        rumps.notification("DocNamer", "Vision-Verarbeitung gestartet", f"{anzahl} Dokument(e) …")
 
     def beenden(self, _):
         self.watcher_stoppen(None)
