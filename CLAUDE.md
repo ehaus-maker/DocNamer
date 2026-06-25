@@ -50,13 +50,29 @@ Three Python entry points share state through files on disk; there is no shared 
 
 **Output tree (created on first run, lives outside the repo):**
 ```
-~/Documents/DocNamer/
+<AUSGABE_BASIS>/
   _Sortiert/      target tree, mirrors kategorien.json
   _Fehler/        failed analyses (retried on next startup)
   _Duplikate/     files whose hash is already in hashes.json
   _Erledigt/      empty source subfolders archived after sweep
   docnamer.log, umbenennung.csv, hashes.json
 ```
+
+`AUSGABE_BASIS` defaults to `~/Documents/DocNamer` but is overridable via the
+`DOCNAMER_OUT` env var; the watched input folder is `DOCNAMER_INBOX` (or the first
+CLI arg, or the iCloud Scanner-Pro folder as fallback).
+
+**On ehaus' actual machine the layout is two locations, code and data fully separated:**
+- **Code**: `~/Developer/DocNamer` (this repo) — no documents.
+- **Data**: `~/DocNamer_data/` — output tree above, plus `Inbox/` (WebDAV target),
+  `venv/` (wsgidav), `wsgidav.json`, `webdav.log`.
+- Launched via `~/Desktop/DocNamer.command`, which exports `DOCNAMER_OUT=~/DocNamer_data`
+  and `DOCNAMER_INBOX=~/DocNamer_data/Inbox` and runs the repo's menubar.
+- **TCC constraint:** data must NOT live under `~/Documents`/`~/Desktop`/`~/Downloads` —
+  the WebDAV launchd agent (`~/Library/LaunchAgents/com.docnamer.webdav.plist`, runs
+  `~/DocNamer_data/venv/bin/wsgidav` on port 8080, user `scanner`) gets
+  `Operation not permitted` there. Hence the home-root location. A moved/renamed `venv`
+  must always be recreated, not copied.
 
 **`docnamer_menubar.py`** is a `rumps` menu-bar wrapper that launches `docnamer_watcher.py` as a subprocess (one-shot or persistent). It owns a `self.watcher_prozess` handle for stop/start. The "documents processed" count in the post-scan notification is computed by counting occurrences of `"Kategorie"` in stdout — fragile, so don't change that log string lightly. The icon path is patched to a relative path by the installer.
 
