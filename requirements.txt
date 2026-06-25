@@ -4,3 +4,4 @@ anthropic
 pymupdf
 watchdog
 rumps
+wsgidav        # WebDAV-Server für die Scanner-Pro-Inbox (siehe wsgidav.json)

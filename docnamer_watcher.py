@@ -29,6 +29,9 @@ args = [a for a in sys.argv[1:] if not a.startswith("--")]
 
 if args:
     ORDNER = os.path.abspath(args[0])
+elif os.environ.get("DOCNAMER_INBOX"):
+    # Überwachter Ordner per Umgebungsvariable (z. B. WebDAV-Inbox)
+    ORDNER = os.path.expanduser(os.environ["DOCNAMER_INBOX"])
 else:
     # Watchdog meldet Pfade über den Documents-Symlink – wir verwenden denselben
     ORDNER = os.path.expanduser(
@@ -39,7 +42,8 @@ else:
             "~/Library/Mobile Documents/iCloud~com~readdle~Scanner~PDF"
         )
 
-AUSGABE_BASIS     = os.path.expanduser("~/Documents/DocNamer")
+# Ausgabe-Basis per Umgebungsvariable überschreibbar (Default: portabel)
+AUSGABE_BASIS     = os.path.expanduser(os.environ.get("DOCNAMER_OUT", "~/Documents/DocNamer"))
 ZIELORDNER        = os.path.join(AUSGABE_BASIS, "_Sortiert")
 FEHLERORDNER      = os.path.join(AUSGABE_BASIS, "_Fehler")
 DUPLIKAT_ORDNER   = os.path.join(AUSGABE_BASIS, "_Duplikate")

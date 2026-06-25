@@ -3,7 +3,7 @@ import os, sys, json, threading, subprocess, rumps
 
 SCRIPT_DIR      = os.path.dirname(os.path.abspath(__file__))
 WATCHER_SCRIPT  = os.path.join(SCRIPT_DIR, "docnamer_watcher.py")
-AUSGABE_BASIS   = "/Users/ehaus/DocNamer-Lab/Out"
+AUSGABE_BASIS   = os.path.expanduser(os.environ.get("DOCNAMER_OUT", "~/Documents/DocNamer"))
 LOG_DATEI       = os.path.join(AUSGABE_BASIS, "docnamer.log")
 KATEGORIEN_JSON = os.path.join(SCRIPT_DIR, "kategorien.json")
 HASH_JSON       = os.path.join(AUSGABE_BASIS, "hashes.json")
@@ -14,9 +14,9 @@ try:
 except Exception:
     VERSION = "?"
 
-STANDARD_ORDNER = "/Users/ehaus/DocNamer-Lab/Inbox"
-if not os.path.exists(STANDARD_ORDNER):
-    STANDARD_ORDNER = os.path.expanduser("~/Library/Mobile Documents/iCloud~com~readdle~Scanner~PDF")
+STANDARD_ORDNER = os.path.expanduser(
+    os.environ.get("DOCNAMER_INBOX", "~/Library/Mobile Documents/iCloud~com~readdle~Scanner~PDF")
+)
 
 PYTHON = "/opt/homebrew/bin/python3"
 

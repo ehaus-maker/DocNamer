@@ -1,0 +1,8 @@
+{
+  "host": "0.0.0.0",
+  "port": 8080,
+  "provider_mapping": { "/": "__INBOX_PFAD__" },
+  "simple_dc": { "user_mapping": { "*": { "scanner": { "password": "__PASSWORT_AENDERN__" } } } },
+  "http_authenticator": { "accept_basic": true, "accept_digest": false, "default_to_digest": false },
+  "verbose": 2
+}
